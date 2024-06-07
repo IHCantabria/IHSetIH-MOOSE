@@ -14,30 +14,14 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
     X_PF = initialize_array((len(dX), 1), np.float64)
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
-    
-    # for i in range(5):
     for i in range(len(dX)):
-    # for i in range(int(np.round(len(dX)/100))):
         if i % 1000 == 0:
             print(i)
         
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
-        
-        # for j in range(npro):
-        #     m = (prof[j,4] - prof[j,2]) / (prof[j,3] - prof[j,1])
-        #     b = prof[j,2] - m * prof[j,1]
-        #     # xx = np.linspace(prof[j,1], prof[j,3])
-        #     xx = np.arange(prof[j,1], prof[j,3], 1)
-        #     yy = m * xx + b
-        #     xf, yf = intersect_with_min_distance(xx, yy, costa_x, costa_y)
-        #     squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
-        #     S_PFo[i, j] = np.sqrt(squared_distance)
-
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
-        xx = np.arange(prof[pivotN,1], prof[pivotN,3], 1)
-        yy = m * xx + b
-        xf, yf = intersect_with_min_distance(xx, yy, costa_x, costa_y)
+        xf, yf = intersect_with_min_distance(m, b, costa_x, costa_y)
         squared_distance = ((xf - prof[pivotN, 1])**2 + (yf - prof[pivotN, 2])**2)
         S_PFo = np.sqrt(squared_distance)
         
@@ -59,9 +43,7 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
         for j in range(npro):
             m = (prof[j,4] - prof[j,2]) / (prof[j,3] - prof[j,1])
             b = prof[j,2] - m * prof[j,1]
-            xx = np.arange(prof[j,1], prof[j,3], 1)
-            yy = m * xx + b
-            xf, yf = intersect_with_min_distance(xx, yy, costa_xf, costa_yf)
+            xf, yf = intersect_with_min_distance(m, b, costa_xf, costa_yf)
             squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
             S_PF[i, j] = np.sqrt(squared_distance)
             
@@ -72,23 +54,19 @@ def initialize_array(shape, dtype):
     return np.zeros(shape, dtype)
 
 @jit
-def intersect_with_min_distance(x1, y1, x2, y2):
+def intersect_with_min_distance(m, b, x1, y1):
     min_distance = np.inf
-    intersection_x = 0.0
-    intersection_y = 0.0
-    
     for i in range(len(x1)):
-        for j in range(len(x2)):
-            distance = np.sqrt((x1[i] - x2[j])**2 + (y1[i] - y2[j])**2)
-            if distance < min_distance:
-                min_distance = distance
-                intersection_x = x1[i]
-                intersection_y = y1[i]
+        distance = abs(m * x1[i] - y1[i] + b) / (m**2 + 1)**0.5
+        if distance < min_distance:
+            min_distance = distance
+            intersection_x = x1[i]
+            intersection_y = y1[i]
     
     return intersection_x, intersection_y
 
 @jit
-def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): ## Lim
+def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
@@ -116,7 +94,7 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): ## Lim
     Rl = ((Xd - Xc)**2 + (Yd - Yc)**2)**0.5
     the = np.arctan2(Yc - Yd, Xc - Xd)
     
-    X = np.abs(Rl * np.sin(the - (Fmean)*np.pi/180)) + dX ## Lim
+    X = np.abs(Rl * np.sin(the - (Fmean)*np.pi/180)) + dX
     
     beta_r=2.13
     alpha_min=(np.arctan((((((beta_r)**4)/16)+(((beta_r)**2)/2)*(X/Ld))**(1/2))/(X/Ld))*180/np.pi)
@@ -158,49 +136,45 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): ## Lim
         costa_x = np.flipud(x)
         costa_y = np.flipud(y)
         if flag_dir == -1:
-            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)] ## Lim
-            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)] ## Lim
+            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
             for i in range(len(x_alpha)):
                 x_alpha[i], y_alpha[i] = reflect_point(x_alpha[i], y_alpha[i], m, b)
 
             for i in range(len(costa_x)):
                 costa_x[i], costa_y[i] = reflect_point(costa_x[i], costa_y[i], m, b)
         else:
-            x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)] ## Lim
-            y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)] ## Lim
+            x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)]
     elif Fmean_o > 180 and Fmean_o <= 360:
         x = Xd + R * np.cos(theta_rad)
         y = Yd + R * np.sin(theta_rad)
         costa_x = np.flipud(x)
         costa_y = np.flipud(y)
         if flag_dir == 1:
-            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)] ## Lim
-            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)] ## Lim
+            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
             for i in range(len(x_alpha)):
                 x_alpha[i], y_alpha[i] = reflect_point(x_alpha[i], y_alpha[i], m, b)
 
             for i in range(len(costa_x)):
                 costa_x[i], costa_y[i] = reflect_point(costa_x[i], costa_y[i], m, b)
         else:
-            x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)] ## Lim
-            y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)] ## Lim
+            x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)]
     
-    costa_xx = [item for sublist in x2 for item in sublist] ## Lim
-    costa_yy = [item for sublist in y2 for item in sublist] ## Lim
+    costa_xx = [item for sublist in x2 for item in sublist]
+    costa_yy = [item for sublist in y2 for item in sublist]
 
     return costa_xx, costa_yy
 
 @jit
 def reflect_point(x, y, m, b):
-    # Find the equation of the perpendicular line that passes through (x, y)
     perp_m = -1/m  # Negative reciprocal of the slope
     perp_b = y - perp_m * x
 
-    # Find the intersection point of the perpendicular line and the original line
     x_intersect = (perp_b - b) / (m - perp_m)
     y_intersect = m * x_intersect + b
-
-    # The reflected point is the mirror image of (x, y) across the intersection point
 
     x_reflected = 2 * x_intersect - x
     y_reflected = 2 * y_intersect - y
