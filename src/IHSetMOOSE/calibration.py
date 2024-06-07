@@ -100,29 +100,30 @@ class cal_IH_MOOSE(object):
             self.cross.best_model_run = results[bestindex]
             fields=[word for word in self.cross.best_model_run.dtype.names if word.startswith('sim')]
             self.cross.best_simulation = list(self.cross.best_model_run[fields])
-        
+                    
             if self.switch_Yini == 0:
+                
                 if self.switch_D == 0 and self.switch_r == 0:
                     self.cross.phi = self.cross.best_model_run['parphi']
-                    self.cross.c = self.cross.best_model_run['parc']
-                    self.cross.N = self.cross.best_model_run['parN']
+                    self.cross.cp = self.cross.best_model_run['parcp']
+                    self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      self.cross.c, 2*self.cross.phi, self.cross.Obs[0], self.cross.N)
-                    
+                                                      2*self.cross.phi, self.cross.Obs[0], self.cross.cp, self.cross.cm) ##
+                
                 elif self.switch_D == 1 and self.switch_r == 0:
                     self.cross.phi = self.cross.best_model_run['parphi']
-                    self.cross.c = self.cross.best_model_run['parc']
-                    self.cross.N = self.cross.best_model_run['parN']
+                    self.cross.cp = self.cross.best_model_run['parcp']
+                    self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      self.cross.c, self.cross.D, self.cross.Obs[0], self.cross.N)
+                                                      self.cross.D, self.cross.Obs[0], self.cross.cp, self.cross.cm) ##
                     
                 elif self.switch_D == 0 and self.switch_r == 1:
                     self.cross.phi = self.cross.best_model_run['parphi']
                     self.cross.cp = self.cross.best_model_run['parcp']
                     self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      None, 2*self.cross.phi, self.cross.Obs[0], 1, self.cross.cp, self.cross.cm)
+                                                      2*self.cross.phi, self.cross.Obs[0], self.cross.cp, self.cross.cm) ##
                     
                 elif self.switch_D == 1 and self.switch_r == 1:
                     self.cross.phi = self.cross.best_model_run['parphi']
@@ -130,31 +131,32 @@ class cal_IH_MOOSE(object):
                     self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      None, self.cross.D, self.cross.Obs[0], 1, self.cross.cp, self.cross.cm)
+                                                      self.cross.D, self.cross.Obs[0], self.cross.cp, self.cross.cm) ##
                                 
             if self.switch_Yini == 1:
+                
                 self.cross.Yini = self.cross.best_model_run['parYini']
                 if self.switch_D == 0 and self.switch_r == 0:
                     self.cross.phi = self.cross.best_model_run['parphi']
-                    self.cross.c = self.cross.best_model_run['parc']
-                    self.cross.N = self.cross.best_model_run['parN']
+                    self.cross.cp = self.cross.best_model_run['parcp']
+                    self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      self.cross.c, 2*self.cross.phi, self.cross.Yini, self.cross.N)
-                    
+                                                      2*self.cross.phi, self.cross.Yini, self.cross.cp, self.cross.cm) ##
+                
                 elif self.switch_D == 1 and self.switch_r == 0:
                     self.cross.phi = self.cross.best_model_run['parphi']
-                    self.cross.c = self.cross.best_model_run['parc']
-                    self.cross.N = self.cross.best_model_run['parN']
+                    self.cross.cp = self.cross.best_model_run['parcp']
+                    self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      self.cross.c, self.cross.D, self.cross.Yini, self.cross.N)
+                                                      self.cross.D, self.cross.Yini, self.cross.cp, self.cross.cm) ##
                     
                 elif self.switch_D == 0 and self.switch_r == 1:
                     self.cross.phi = self.cross.best_model_run['parphi']
                     self.cross.cp = self.cross.best_model_run['parcp']
                     self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      None, 2*self.cross.phi, self.cross.Yini, 1, self.cross.cp, self.cross.cm)
+                                                      2*self.cross.phi, self.cross.Yini, self.cross.cp, self.cross.cm) ##
                     
                 elif self.switch_D == 1 and self.switch_r == 1:
                     self.cross.phi = self.cross.best_model_run['parphi']
@@ -162,7 +164,7 @@ class cal_IH_MOOSE(object):
                     self.cross.cm = self.cross.best_model_run['parcm']
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
-                                                      None, self.cross.D, self.cross.Yini, 1, self.cross.cp, self.cross.cm)
+                                                      self.cross.D, self.cross.Yini, self.cross.cp, self.cross.cm) ##
         
         if self.crossshore == 'JA':
             self.switch_vlt = cfg['switch_vlt'].values
