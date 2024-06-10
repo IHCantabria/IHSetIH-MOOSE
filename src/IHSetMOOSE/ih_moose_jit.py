@@ -15,8 +15,8 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
-        if i % 1000 == 0:
-            print(i)
+        # if i % 1000 == 0:
+        #     print(i)
         
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
