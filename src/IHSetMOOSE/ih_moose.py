@@ -7,7 +7,7 @@ from .ih_moose_jit import ih_moose_jit
 
 class ih_moose(object):
     
-    def __init__(self, path_prof, model, Fmean, pivotN, Cp, Cl, T, depth, Lr):
+    def __init__(self, path_prof, model, Fmean, profN, pivotNi, Cp, Cl, T, depth, Lr):
         """
         Jaramillo et al. 2021 model
         """
@@ -17,7 +17,11 @@ class ih_moose(object):
         mkTime = np.vectorize(lambda Y, M, D, h: datetime(int(Y), int(M), int(D), int(h), 0, 0))
         prof = pd.read_csv(path_prof+'prof.csv')
         prof = prof.values
+        prof = prof[profN,:]
+        self.profN = profN
         self.npro = prof.shape[0]
+        indice = np.where(np.array(profN) == pivotNi)
+        pivotN = indice[0][0]
         pivotDir = prof[pivotN,0]
         Dif = np.abs(pivotDir - Fmean)
 
@@ -32,7 +36,7 @@ class ih_moose(object):
         self.idx_validation_obs = []
         self.idx_validation_for_obs = []
         for i in range(self.npro):
-            ens = xr.open_dataset(os.path.join(path_prof, 'ens_prof' + str(i+1) + '.nc'))
+            ens = xr.open_dataset(os.path.join(path_prof, 'ens_prof' + str(profN[i]+1) + '.nc'))
             Obs_o = ens['Obs'].values
             time_obs_o = mkTime(ens['Y'].values, ens['M'].values, ens['D'].values, ens['h'].values)
             self.Obs.append(Obs_o)
