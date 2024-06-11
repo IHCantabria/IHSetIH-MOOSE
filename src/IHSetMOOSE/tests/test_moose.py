@@ -77,9 +77,7 @@ config.to_netcdf(wrkDir+'/data_hybrid/Cross_shore/config.nc', engine='netcdf4')
 config.to_netcdf(wrkDir+'/data_hybrid/Longshore/config.nc', engine='netcdf4')
 
 model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/')
-results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, 109.2900, 2, [344915.384, 6266136.216], [342451.3627, 6267913.117], 10, 20, 1800)
-# results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, 109.2900, 2, [344915.384, 6266136.216], [342465.325356620, 6267953.01071650], 10, 20, 1800)
-
+results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, 109.2900, [1, 2, 3, 4], 2, [344915.384, 6266136.216], [342451.3627, 6267913.117], 10, 20, 1800)
 plt.rcParams.update({'font.family': 'serif'})
 plt.rcParams.update({'font.size': 7})
 plt.rcParams.update({'font.weight': 'bold'})
@@ -161,7 +159,7 @@ print('Mielke Skill Score [-]        | %-5.2f        | %-5.2f     |' % (mss_l, m
 print('R2 [-]                        | %-5.2f        | %-5.2f     |' % (rp_l, rp_v_l))
 print('Bias [m]                      | %-5.2f        | %-5.2f     |' % (bias_l, bias_v_l))
 
-fig, ax = plt.subplots(results.npro , 1, figsize=(10, results.npro), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results.npro})
+fig, ax = plt.subplots(results.npro , 1, figsize=(10, results.npro*1.5), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results.npro})
 rmse = np.zeros([results.npro,1])
 nsse = np.zeros([results.npro,1])
 mss = np.zeros([results.npro,1])
@@ -177,6 +175,7 @@ for i in range(results.npro):
         ax[i].set_xlim([model.cross.time[0], model.cross.time[-1]])
         ax[i].set_ylabel('S [m]', fontdict=font)
         ax[i].grid(visible=True, which='both', linestyle = '--', linewidth = 0.5)
+        ax[i].set_title(f"Profile {results.profN[i] + 1}", fontdict=font)
         
         Observations = results.Obs[i]
         run = results.S_PF[:,i]
@@ -186,19 +185,19 @@ for i in range(results.npro):
         mss[i] = mielke_skill_score(Observations[results.idx_validation_obs[i]], run_cut[results.idx_validation_for_obs[i]])
         rp[i] = spt.objectivefunctions.rsquared(Observations[results.idx_validation_obs[i]], run_cut[results.idx_validation_for_obs[i]])
         bias[i] = spt.objectivefunctions.bias(Observations[results.idx_validation_obs[i]], run_cut[results.idx_validation_for_obs[i]])
-ax[0].legend(ncol = 6,prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0.5, 1.20))
+ax[0].legend(ncol = 6, prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0.5, 1.55))
 
 for i in range(results.npro):
         print('**********************************************************')
         print('Hybrid model')
-        print('Metrics - Profile', i+1, '           | Validation |')
+        print('Metrics - Profile', results.profN[i]+1, '           | Validation |')
         print('RMSE [m]                       | %-5.2f      |' % (rmse[i][0]))
         print('Nash-Sutcliffe coefficient [-] | %-5.2f      |' % (nsse[i][0]))
         print('Mielke Skill Score [-]         | %-5.2f      |' % (mss[i][0]))
         print('R2 [-]                         | %-5.2f      |' % (rp[i][0]))
         print('Bias [m]                       | %-5.2f      |' % (bias[i][0]))
 
-plt.subplots_adjust(hspace=0.3)
+plt.subplots_adjust(hspace=0.6)
 fig.savefig('./results/IH-MOOSE_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
 
 config.close()
