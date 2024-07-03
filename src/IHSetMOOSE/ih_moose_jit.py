@@ -134,13 +134,12 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
         costa_x = np.flipud(x)
         costa_y = np.flipud(y)
         if flag_dir == -1:
-            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
-            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
             for i in range(len(x_alpha)):
                 x_alpha[i], y_alpha[i] = reflect_point(x_alpha[i], y_alpha[i], m, b)
-
             for i in range(len(costa_x)):
                 costa_x[i], costa_y[i] = reflect_point(costa_x[i], costa_y[i], m, b)
+            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
         else:
             x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)]
             y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)]
@@ -150,13 +149,12 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
         costa_x = np.flipud(x)
         costa_y = np.flipud(y)
         if flag_dir == 1:
-            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
-            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
             for i in range(len(x_alpha)):
                 x_alpha[i], y_alpha[i] = reflect_point(x_alpha[i], y_alpha[i], m, b)
-
             for i in range(len(costa_x)):
                 costa_x[i], costa_y[i] = reflect_point(costa_x[i], costa_y[i], m, b)
+            x2 = [costa_x, costa_x[-1] - Lrr * np.cos(Fmean * np.pi / 180)]
+            y2 = [costa_y, costa_y[-1] - Lrr * np.sin(Fmean * np.pi / 180)]
         else:
             x2 = [costa_x, costa_x[-1] + Lrr * np.cos(Fmean * np.pi / 180)]
             y2 = [costa_y, costa_y[-1] + Lrr * np.sin(Fmean * np.pi / 180)]
