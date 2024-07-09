@@ -205,3 +205,14 @@ def hunt(T, d):
     L = T * (g * d / F) ** 0.5
     
     return L
+
+@jit
+def combine_arrays(x1, x2):
+    x_bt = np.linspace(x1[-1], x2[-1])
+    combined_length = len(x1) + len(x_bt) + len(x2)
+    combined = np.empty(combined_length)
+    combined[:len(x1)] = x1
+    combined[len(x1):len(x1)+len(x_bt)] = x_bt
+    combined[len(x1)+len(x_bt):] = np.flipud(x2)
+    
+    return combined
