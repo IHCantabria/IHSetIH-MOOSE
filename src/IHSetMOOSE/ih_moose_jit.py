@@ -66,9 +66,9 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
-    Xd, Yd = Cp # Difraction Point
-    Xc, Yc = Cl # Coast Point
-    Fmean = n2c(Fmean) + 90 ## Lim
+    Xd, Yd = Cp
+    Xc, Yc = Cl
+    Fmean = n2c(Fmean) + 90
 
     if Fmean < 0:
         Fmean = 360 + Fmean
