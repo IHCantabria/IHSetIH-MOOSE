@@ -15,7 +15,6 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
-       
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
@@ -65,7 +64,6 @@ def intersect_with_min_distance(m, b, x1, y1):
 
 @jit
 def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
-    
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
@@ -77,11 +75,8 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
         Fmean = 360 + Fmean
 
     xc, yc = (Xd + 100 * np.cos(np.deg2rad(Fmean-90)), Yd + 100 * np.sin(np.deg2rad(Fmean-90)))
-
     m = (yc - Yd) / (xc - Xd)
-
     b = Yd - m * Xd
-
     b2 = Yc - m * Xc
 
     if b2 > b:
@@ -91,7 +86,6 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     
     Rl = ((Xd - Xc)**2 + (Yd - Yc)**2)**0.5
     the = np.arctan2(Yc - Yd, Xc - Xd)
-    
     X = np.abs(Rl * np.sin(the - (Fmean)*np.pi/180)) + dX
     
     beta_r=2.13
@@ -117,14 +111,12 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
 
     dist = np.abs((-m *  Xc) + Yc - b) / np.sqrt(m**2 + 1)
     y_alpha = np.linspace(0, dist, 250)
-
     x_alpha = (np.sqrt(((beta_r**4)/16)+(((beta_r)**2)/2)*(y_alpha/Ld)))*Ld
-
+    
     rho, phi = np.sqrt(x_alpha**2 + y_alpha**2), np.arctan2(y_alpha, x_alpha)
-
     x_alpha, y_alpha = Xd + rho * np.cos(phi+(Fmean)*np.pi/180), Yd + rho * np.sin(phi+(Fmean)*np.pi/180)
 
-    theta_rad = np.deg2rad(theta+Fmean)
+    theta_rad = np.deg2rad(theta+Fean)
 
     Lrr = np.linspace(0, Lr) ## Lim
 
@@ -200,9 +192,7 @@ def getAwayLims(Fmean):
 
 @jit  
 def n2c(nDir):
-    
     cDir = 90.0 - nDir
-    
     if cDir < -180.0:
         cDir += 360.0
     
@@ -210,13 +200,9 @@ def n2c(nDir):
 
 @jit    
 def hunt(T, d):   
-    
     g = 9.81
-
     G = (2 * np.pi / T) ** 2 * (d / g)
-    
     F = G + 1.0 / (1 + 0.6522*G + 0.4622*G**2 + 0.0864*G**4 + 0.0675*G**5)
-
     L = T * (g * d / F) ** 0.5
     
     return L
