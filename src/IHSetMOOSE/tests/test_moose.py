@@ -1,12 +1,10 @@
 from IHSetMOOSE import calibration, ih_moose
-from IHSetCalibration import setup_spotpy, mielke_skill_score
+from IHSetCalibration import mielke_skill_score
 import xarray as xr
 import os
 import matplotlib.pyplot as plt
 import spotpy as spt
 import numpy as np
-import pandas as pd
-from IHSetUtils import waves
 
 # Avaliable methods: NSGAII, mle, mc, dds, mcmc, sa, abc, lhs, rope, sceua, demcz, padds, fscabc
 
