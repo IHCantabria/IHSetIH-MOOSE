@@ -3,7 +3,6 @@ from numba import jit
 
 @jit
 def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
-
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -118,7 +117,7 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
 
     theta_rad = np.deg2rad(theta+Fean)
 
-    Lrr = np.linspace(0, Lr) ## Lim
+    Lrr = np.linspace(0, Lr)
 
     if Fmean_o > 0 and Fmean_o <= 180:
         x = Xd + R * np.cos(theta_rad)
