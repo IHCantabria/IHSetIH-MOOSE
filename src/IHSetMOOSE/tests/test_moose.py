@@ -76,9 +76,9 @@ config.to_netcdf(wrkDir+'/data_hybrid/Cross_shore/config.nc', engine='netcdf4')
 config.to_netcdf(wrkDir+'/data_hybrid/Longshore/config.nc', engine='netcdf4')
 
 model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/', prof_orgin=[342451.3627, 6267913.117], DirN=[100.26])
-results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 2, 3, 4], pivotNi=2,
+results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
                             Cp=[344915.384, 6266136.216], T=10, depth=20, Lr=1800, parabola_num=1)
-results2 = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 2, 3, 4], pivotNi=2,
+results2 = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
                             Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, parabola_num=2)
 
 plt.rcParams.update({'font.family': 'serif'})
