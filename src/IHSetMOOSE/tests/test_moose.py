@@ -5,44 +5,21 @@ import os
 import matplotlib.pyplot as plt
 import spotpy as spt
 import numpy as np
+import time
 
+def tic():
+    global start_time
+    start_time = time.time()
+
+def toc():
+    elapsed_time = time.time() - start_time
+    print("Elapsed time:", elapsed_time, "seconds")
+    
 # Avaliable methods: NSGAII, mle, mc, dds, mcmc, sa, abc, lhs, rope, sceua, demcz, padds, fscabc
-
-config = xr.Dataset(coords={'dt': 1,                # [hours]
-                            'switch_Yini': 1,       # Calibrate the initial S position? (0: No, 1: Yes)
-                            'crossshore' : 'YA',    # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
-                            'switch_alpha_ini': 1,  # Calibrate the initial alpha position? (0: No, 1: Yes)
-                            'longshore' : 'JA',     # EBSEM for longshore (TU, JA)
-                            
-                            'depth': 20,              # Water depth [m] (MD, TU, LIM)
-                            'D50': .3e-3,             # Median grain size [m] (MD, TU, SF, LIM)
-                            'bathy_angle': 7.2,       # Bathymetry mean orientation [deg N] (MD, TU, LIM)
-                            'break_type': 'spectral', # Breaking type (spectral or linear) (MD, TU)
-                            'Hberm': 1,               # Berm height [m] (MD)
-                            'flagP': 1,               # Parameter Proportionality (MD)
-                            'switch_D': 1,            # Calibrate D independently? (0: No, 1: Yes) (SF)
-                            'switch_r': 0,            # Calibrate r independently? (0: No, 1: Yes) (SF)
-                            'mf' : 0.02,              # Proflie slope (LIM)
-                            'switch_vlt': 0,          # Calibrate the longterm trend? (0: No, 1: Yes) (JA-cross)
-                            'vlt': 0,                 # Longterm trend [m] (JA-cross)
-                            'BeachL': 3200,           # Beach Length [m] (TU)
-                                                        
-                            'Ysi': 1974,            # Initial year for calibration
-                            'Msi': 1,               # Initial month for calibration
-                            'Dsi': 1,               # Initial day for calibration
-                            'Ysf': 2016,            # Final year for calibration
-                            'Msf': 1,               # Final month for calibration
-                            'Dsf': 1,               # Final day for calibration
-                            'cal_alg': 'NSGAII',    # Avaliable methods: NSGAII
-                            'metrics': 'mss_rmse',  # Metrics to be minimized (mss_rmse, mss_rho, mss_rmse_rho)
-                            'n_pop': 50,            # Number of individuals in the population
-                            'n_obj': 2,             # Number of objectives to be minimized 
-                            'generations': 1000,    # Number of generations for the calibration algorithm
-                            })              
 
 # config = xr.Dataset(coords={'dt': 1,                  # [hours]
 #                             'switch_Yini': 1,         # Calibrate the initial S position? (0: No, 1: Yes)
-#                             'crossshore' : 'LIM',      # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
+#                             'crossshore' : 'YA',      # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
 #                             'switch_alpha_ini': 1,    # Calibrate the initial alpha position? (0: No, 1: Yes)
 #                             'longshore' : 'JA',       # EBSEM for longshore (TU, JA)
                             
@@ -58,24 +35,62 @@ config = xr.Dataset(coords={'dt': 1,                # [hours]
 #                             'switch_vlt': 0,          # Calibrate the longterm trend? (0: No, 1: Yes) (JA-cross)
 #                             'vlt': 0,                 # Longterm trend [m] (JA-cross)
 #                             'BeachL': 3200,           # Beach Length [m] (TU)
-                            
-#                             'Ysi': 1975,              # Initial year for calibration
+                                                        
+#                             'Ysi': 1974,              # Initial year for calibration
 #                             'Msi': 1,                 # Initial month for calibration
 #                             'Dsi': 1,                 # Initial day for calibration
-#                             'Ysf': 2015,              # Final year for calibration
+#                             'Ysf': 2016,              # Final year for calibration
 #                             'Msf': 1,                 # Final month for calibration
 #                             'Dsf': 1,                 # Final day for calibration
-#                             'cal_alg': 'sceua',       # Avaliable methods: sceua
-#                             'metrics': 'mss',        # Metrics to be minimized (mss, RP, rmse, nsse)
-#                             'repetitions': 50000      # Number of repetitions for the calibration algorithm
-#                             })
+#                             'cal_alg': 'NSGAII',      # Avaliable methods: NSGAII
+#                             'metrics': 'mss_rmse',    # Metrics to be minimized (mss_rmse, mss_rho, mss_rmse_rho)
+#                             'n_pop': 50,              # Number of individuals in the population
+#                             'n_obj': 2,               # Number of objectives to be minimized 
+#                             'generations': 1000,      # Number of generations for the calibration algorithm
+#                             })              
+
+config = xr.Dataset(coords={'dt': 1,                  # [hours]
+                            'switch_Yini': 1,         # Calibrate the initial S position? (0: No, 1: Yes)
+                            'crossshore' : 'JA',      # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
+                            'switch_alpha_ini': 1,    # Calibrate the initial alpha position? (0: No, 1: Yes)
+                            'longshore' : 'JA',       # EBSEM for longshore (TU, JA)
+                            
+                            'depth': 20,              # Water depth [m] (MD, TU, LIM)
+                            'D50': .3e-3,             # Median grain size [m] (MD, TU, SF, LIM)
+                            'bathy_angle': 7.2,       # Bathymetry mean orientation [deg N] (MD, TU, LIM)
+                            'break_type': 'spectral', # Breaking type (spectral or linear) (MD, TU)
+                            'Hberm': 1,               # Berm height [m] (MD)
+                            'flagP': 3,               # Parameter Proportionality (MD)
+                            'switch_D': 1,            # Calibrate D independently? (0: No, 1: Yes) (SF)
+                            'switch_r': 1,            # Calibrate r independently? (0: No, 1: Yes) (SF)
+                            'mf' : 0.02,              # Proflie slope (LIM)
+                            'switch_vlt': 0,          # Calibrate the longterm trend? (0: No, 1: Yes) (JA-cross)
+                            'vlt': 0,                 # Longterm trend [m] (JA-cross)
+                            'BeachL': 3200,           # Beach Length [m] (TU)
+                            
+                            'Ysi': 1975,              # Initial year for calibration
+                            'Msi': 1,                 # Initial month for calibration
+                            'Dsi': 1,                 # Initial day for calibration
+                            'Ysf': 2015,              # Final year for calibration
+                            'Msf': 1,                 # Final month for calibration
+                            'Dsf': 1,                 # Final day for calibration
+                            'cal_alg': 'sceua',       # Avaliable methods: sceua
+                            'metrics': 'nsse',        # Metrics to be minimized (mss, RP, rmse, nsse)
+                            'repetitions': 50000      # Number of repetitions for the calibration algorithm
+                            })
 
 wrkDir = os.getcwd()
 config.to_netcdf(wrkDir+'/data_hybrid/Cross_shore/config.nc', engine='netcdf4')
 config.to_netcdf(wrkDir+'/data_hybrid/Longshore/config.nc', engine='netcdf4')
 
-model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/')
-results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, 109.2900, [1, 2, 3, 4], 2, [344915.384, 6266136.216], [342451.3627, 6267913.117], 10, 20, 1800)
+tic()
+model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/', prof_orgin=[342451.3627, 6267913.117], DirN=[100.26])
+results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 2, 3, 4], pivotNi=2,
+                            Cp=[344915.384, 6266136.216], T=10, depth=20, Lr=1800, parabola_num=1)
+results2 = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 2, 3, 4], pivotNi=2,
+                            Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, parabola_num=2)
+toc()
+
 plt.rcParams.update({'font.family': 'serif'})
 plt.rcParams.update({'font.size': 7})
 plt.rcParams.update({'font.weight': 'bold'})
@@ -83,6 +98,7 @@ font = {'family': 'serif',
         'weight': 'bold',
         'size': 8}
 
+######################################################################     EBSEM     ######################################################################
 fig, ax = plt.subplots(2 , 1, figsize=(10, 2), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5, 3.5]})
 ylim_lower = np.floor(np.min([np.nanmin(model.cross.Obs), np.nanmin(model.cross.full_run)]) / 2) * 2
 ylim_upper = np.ceil(np.max([np.nanmax(model.cross.Obs), np.nanmax(model.cross.full_run)]) / 2) * 2
@@ -157,6 +173,7 @@ print('Mielke Skill Score [-]        | %-5.2f        | %-5.2f     |' % (mss_l, m
 print('R2 [-]                        | %-5.2f        | %-5.2f     |' % (rp_l, rp_v_l))
 print('Bias [m]                      | %-5.2f        | %-5.2f     |' % (bias_l, bias_v_l))
 
+######################################################################     One Beach Profiles     ######################################################################
 fig, ax = plt.subplots(results.npro , 1, figsize=(10, results.npro*1.5), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results.npro})
 rmse = np.zeros([results.npro,1])
 nsse = np.zeros([results.npro,1])
@@ -187,7 +204,7 @@ ax[0].legend(ncol = 6, prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0
 
 for i in range(results.npro):
         print('**********************************************************')
-        print('Hybrid model')
+        print('Hybrid model (1 Parabolic)')
         print('Metrics - Profile', results.profN[i]+1, '           | Validation |')
         print('RMSE [m]                       | %-5.2f      |' % (rmse[i][0]))
         print('Nash-Sutcliffe coefficient [-] | %-5.2f      |' % (nsse[i][0]))
@@ -196,6 +213,48 @@ for i in range(results.npro):
         print('Bias [m]                       | %-5.2f      |' % (bias[i][0]))
 
 plt.subplots_adjust(hspace=0.6)
-fig.savefig('./results/IH-MOOSE_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
+fig.savefig('./results/IH-MOOSE_1p_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
+
+######################################################################     Two Beach Profiles     ######################################################################
+fig, ax = plt.subplots(results2.npro , 1, figsize=(10, results2.npro*1.5), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results2.npro})
+rmse = np.zeros([results2.npro,1])
+nsse = np.zeros([results2.npro,1])
+mss = np.zeros([results2.npro,1])
+rp = np.zeros([results2.npro,1])
+bias = np.zeros([results2.npro,1])
+
+for i in range(results2.npro):
+        ylim_lower = np.floor(np.min([np.nanmin(results2.Obs[i]), np.nanmin(results2.S_PF[:,i])]) / 2) * 2
+        ylim_upper = np.ceil(np.max([np.nanmax(results2.Obs[i]), np.nanmax(results2.S_PF[:,i])]) / 2) * 2
+        ax[i].scatter(results2.time_obs[i], results2.Obs[i], s = 1, c = 'grey', label = 'Observed data')
+        ax[i].plot(model.cross.time, results2.S_PF[:,i], color='red',linestyle='solid', label= 'IH-MOOSE')
+        ax[i].set_ylim([ylim_lower,ylim_upper])
+        ax[i].set_xlim([model.cross.time[0], model.cross.time[-1]])
+        ax[i].set_ylabel('S [m]', fontdict=font)
+        ax[i].grid(visible=True, which='both', linestyle = '--', linewidth = 0.5)
+        ax[i].set_title(f"Profile {results2.profN[i] + 1}", fontdict=font)
+        
+        Observations = results2.Obs[i]
+        run = results2.S_PF[:,i]
+        run_cut = run[results2.idx_validation[i]]
+        rmse[i] = spt.objectivefunctions.rmse(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
+        nsse[i] = spt.objectivefunctions.nashsutcliffe(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
+        mss[i] = mielke_skill_score(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
+        rp[i] = spt.objectivefunctions.rsquared(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
+        bias[i] = spt.objectivefunctions.bias(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
+ax[0].legend(ncol = 6, prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0.5, 1.55))
+
+for i in range(results2.npro):
+        print('**********************************************************')
+        print('Hybrid model (2 Parabolic)')
+        print('Metrics - Profile', results2.profN[i]+1, '           | Validation |')
+        print('RMSE [m]                       | %-5.2f      |' % (rmse[i][0]))
+        print('Nash-Sutcliffe coefficient [-] | %-5.2f      |' % (nsse[i][0]))
+        print('Mielke Skill Score [-]         | %-5.2f      |' % (mss[i][0]))
+        print('R2 [-]                         | %-5.2f      |' % (rp[i][0]))
+        print('Bias [m]                       | %-5.2f      |' % (bias[i][0]))
+
+plt.subplots_adjust(hspace=0.6)
+fig.savefig('./results/IH-MOOSE_2p_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
 
 config.close()
