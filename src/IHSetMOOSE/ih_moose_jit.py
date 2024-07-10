@@ -2,7 +2,7 @@ import numpy as np
 from numba import jit
 
 @jit
-def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
+def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -14,6 +14,7 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
+        
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
@@ -28,6 +29,54 @@ def ih_moose_jit(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
                 
         xg = np.array(costa_x) - centro[0]
         yg = np.array(costa_y) - centro[1]
+
+        theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
+        theta = theta0 - delta_alpha[i]
+        
+        costa_xf, costa_yf = rho * np.cos(theta), rho * np.sin(theta)
+        costa_xf += centro[0]
+        costa_yf += centro[1]
+        
+        for j in range(npro):
+            m = (prof[j,4] - prof[j,2]) / (prof[j,3] - prof[j,1])
+            b = prof[j,2] - m * prof[j,1]
+            xf, yf = intersect_with_min_distance(m, b, costa_xf, costa_yf)
+            squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
+            S_PF[i, j] = np.sqrt(squared_distance)
+            
+    return S_PF
+
+@jit
+def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha):
+    npro = prof.shape[0]
+    pivotDir = prof[pivotN,0]
+    pivotXY = [prof[pivotN,1], prof[pivotN,2]]
+    
+    S_PFo = initialize_array((len(dX), npro), np.float64)
+    S_PF = initialize_array((len(dX), npro), np.float64)
+    pivotS = initialize_array((len(dX), 1), np.float64)
+    X_PF = initialize_array((len(dX), 1), np.float64)
+    Y_PF = initialize_array((len(dX), 1), np.float64)
+    
+    for i in range(len(dX)):
+        costa_x1, costa_y1 = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, dX[i])
+        costa_x2, costa_y2 = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, dX[i])
+        costa_x = combine_arrays(costa_x1, costa_x2)
+        costa_y = combine_arrays(costa_y1, costa_y2)
+        
+        m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
+        b = prof[pivotN,2] - m * prof[pivotN,1]        
+        xf, yf = intersect_with_min_distance(m, b, costa_x, costa_y)
+        squared_distance = ((xf - prof[pivotN, 1])**2 + (yf - prof[pivotN, 2])**2)
+        S_PFo = np.sqrt(squared_distance)
+        
+        pivotS[i] = S_PFo
+        X_PF[i] = pivotXY[0] + pivotS[i] * np.cos(np.radians(pivotDir - 90))
+        Y_PF[i] = pivotXY[1] - pivotS[i] * np.sin(np.radians(pivotDir - 90))
+        centro = [X_PF[i], Y_PF[i]]
+            
+        xg = costa_x - centro[0]
+        yg = costa_y - centro[1]
 
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
@@ -62,12 +111,12 @@ def intersect_with_min_distance(m, b, x1, y1):
     return intersection_x, intersection_y
 
 @jit
-def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
+def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): 
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
-    Xd, Yd = Cp
-    Xc, Yc = Cl
+    Xd, Yd = Cp # Difraction Point
+    Xc, Yc = Cl # Coast Point
     Fmean = n2c(Fmean) + 90
 
     if Fmean < 0:
@@ -107,16 +156,13 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     theta[1:]=theta0
 
     R=Ro*(C0+C1*(beta/theta)+C2*((beta/theta)**2))
-
     dist = np.abs((-m *  Xc) + Yc - b) / np.sqrt(m**2 + 1)
     y_alpha = np.linspace(0, dist, 250)
+
     x_alpha = (np.sqrt(((beta_r**4)/16)+(((beta_r)**2)/2)*(y_alpha/Ld)))*Ld
-    
     rho, phi = np.sqrt(x_alpha**2 + y_alpha**2), np.arctan2(y_alpha, x_alpha)
     x_alpha, y_alpha = Xd + rho * np.cos(phi+(Fmean)*np.pi/180), Yd + rho * np.sin(phi+(Fmean)*np.pi/180)
-
-    theta_rad = np.deg2rad(theta+Fean)
-
+    theta_rad = np.deg2rad(theta+Fmean)
     Lrr = np.linspace(0, Lr)
 
     if Fmean_o > 0 and Fmean_o <= 180:
@@ -157,7 +203,7 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
 
 @jit
 def reflect_point(x, y, m, b):
-    perp_m = -1/m  # Negative reciprocal of the slope
+    perp_m = -1/m
     perp_b = y - perp_m * x
 
     x_intersect = (perp_b - b) / (m - perp_m)
