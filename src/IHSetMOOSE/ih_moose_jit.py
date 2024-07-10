@@ -14,7 +14,6 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
-        
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
@@ -29,7 +28,6 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
                 
         xg = np.array(costa_x) - centro[0]
         yg = np.array(costa_y) - centro[1]
-
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
         
@@ -77,7 +75,6 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
             
         xg = costa_x - centro[0]
         yg = costa_y - centro[1]
-
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
         
