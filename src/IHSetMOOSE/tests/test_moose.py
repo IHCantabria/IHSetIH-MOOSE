@@ -75,11 +75,15 @@ wrkDir = os.getcwd()
 config.to_netcdf(wrkDir+'/data_hybrid/Cross_shore/config.nc', engine='netcdf4')
 config.to_netcdf(wrkDir+'/data_hybrid/Longshore/config.nc', engine='netcdf4')
 
+# Calibration EBSEM
 model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/', prof_orgin=[342451.3627, 6267913.117], DirN=[100.26])
+
+# IH-MOOSE for one planform
 results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
                             Cp=[344915.384, 6266136.216], T=10, depth=20, Lr=1800, parabola_num=1)
-results2 = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
-                            Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, parabola_num=2)
+# IH-MOOSE for two planforms
+# results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
+#                             Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, parabola_num=2)
 
 plt.rcParams.update({'font.family': 'serif'})
 plt.rcParams.update({'font.size': 7})
@@ -163,7 +167,7 @@ print('Mielke Skill Score [-]        | %-5.2f        | %-5.2f     |' % (mss_l, m
 print('R2 [-]                        | %-5.2f        | %-5.2f     |' % (rp_l, rp_v_l))
 print('Bias [m]                      | %-5.2f        | %-5.2f     |' % (bias_l, bias_v_l))
 
-######################################################################     One Beach Profiles     ######################################################################
+######################################################################     IH-MOOSE Results     ######################################################################
 fig, ax = plt.subplots(results.npro , 1, figsize=(10, results.npro*1.5), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results.npro})
 rmse = np.zeros([results.npro,1])
 nsse = np.zeros([results.npro,1])
@@ -205,46 +209,5 @@ for i in range(results.npro):
 plt.subplots_adjust(hspace=0.6)
 fig.savefig('./results/IH-MOOSE_1p_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
 
-######################################################################     Two Beach Profiles     ######################################################################
-fig, ax = plt.subplots(results2.npro , 1, figsize=(10, results2.npro*1.5), dpi=300, linewidth=5, edgecolor="#04253a", gridspec_kw={'height_ratios': [3.5] * results2.npro})
-rmse = np.zeros([results2.npro,1])
-nsse = np.zeros([results2.npro,1])
-mss = np.zeros([results2.npro,1])
-rp = np.zeros([results2.npro,1])
-bias = np.zeros([results2.npro,1])
-
-for i in range(results2.npro):
-        ylim_lower = np.floor(np.min([np.nanmin(results2.Obs[i]), np.nanmin(results2.S_PF[:,i])]) / 2) * 2
-        ylim_upper = np.ceil(np.max([np.nanmax(results2.Obs[i]), np.nanmax(results2.S_PF[:,i])]) / 2) * 2
-        ax[i].scatter(results2.time_obs[i], results2.Obs[i], s = 1, c = 'grey', label = 'Observed data')
-        ax[i].plot(model.cross.time, results2.S_PF[:,i], color='red',linestyle='solid', label= 'IH-MOOSE')
-        ax[i].set_ylim([ylim_lower,ylim_upper])
-        ax[i].set_xlim([model.cross.time[0], model.cross.time[-1]])
-        ax[i].set_ylabel('S [m]', fontdict=font)
-        ax[i].grid(visible=True, which='both', linestyle = '--', linewidth = 0.5)
-        ax[i].set_title(f"Profile {results2.profN[i] + 1}", fontdict=font)
-        
-        Observations = results2.Obs[i]
-        run = results2.S_PF[:,i]
-        run_cut = run[results2.idx_validation[i]]
-        rmse[i] = spt.objectivefunctions.rmse(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
-        nsse[i] = spt.objectivefunctions.nashsutcliffe(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
-        mss[i] = mielke_skill_score(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
-        rp[i] = spt.objectivefunctions.rsquared(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
-        bias[i] = spt.objectivefunctions.bias(Observations[results2.idx_validation_obs[i]], run_cut[results2.idx_validation_for_obs[i]])
-ax[0].legend(ncol = 6, prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0.5, 1.55))
-
-for i in range(results2.npro):
-        print('**********************************************************')
-        print('Hybrid model (2 Parabolic)')
-        print('Metrics - Profile', results2.profN[i]+1, '           | Validation |')
-        print('RMSE [m]                       | %-5.2f      |' % (rmse[i][0]))
-        print('Nash-Sutcliffe coefficient [-] | %-5.2f      |' % (nsse[i][0]))
-        print('Mielke Skill Score [-]         | %-5.2f      |' % (mss[i][0]))
-        print('R2 [-]                         | %-5.2f      |' % (rp[i][0]))
-        print('Bias [m]                       | %-5.2f      |' % (bias[i][0]))
-
-plt.subplots_adjust(hspace=0.6)
-fig.savefig('./results/IH-MOOSE_2p_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
-
 config.close()
+
