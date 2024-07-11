@@ -207,7 +207,7 @@ for i in range(results.npro):
         print('Bias [m]                       | %-5.2f      |' % (bias[i][0]))
 
 plt.subplots_adjust(hspace=0.6)
-fig.savefig('./results/IH-MOOSE_1p_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
+fig.savefig('./results/IH-MOOSE_Best_modelrun_'+str(config.cal_alg.values)+'.png',dpi=300)
 
 config.close()
 
