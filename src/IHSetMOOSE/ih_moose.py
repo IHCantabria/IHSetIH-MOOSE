@@ -19,7 +19,6 @@ class ih_moose(object):
         pivotNi = kwargs['pivotNi']
         T = kwargs['T']
         depth = kwargs['depth']
-        parabola_num = kwargs['parabola_num']
                     
         mkTime = np.vectorize(lambda Y, M, D, h: datetime(int(Y), int(M), int(D), int(h), 0, 0))
         prof = pd.read_csv(path_prof+'prof.csv')
@@ -59,7 +58,8 @@ class ih_moose(object):
             self.idx_validation_obs.append(idx_validation_obs_o)
             self.idx_validation_for_obs.append(idx_validation_for_obs_o)
         
-        
+
+        parabola_num = kwargs['parabola_num']        
         if parabola_num == 1:
             Cp = kwargs['Cp']
             Cl = model.prof_orgin
