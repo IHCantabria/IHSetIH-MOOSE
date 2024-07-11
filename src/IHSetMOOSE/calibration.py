@@ -1,7 +1,5 @@
 import numpy as np
 import xarray as xr
-import spotpy as spt
-from IHSetUtils import BreakingPropagation
 from IHSetMillerDean import calibration as cal_MD
 from IHSetMillerDean import millerDean
 from IHSetYates09 import calibration as cal_YA
@@ -17,6 +15,8 @@ from IHSetTurki import turki
 from IHSetJaramillo21a import calibration as cal_JA21a
 from IHSetJaramillo21a import jaramillo21a
 from IHSetCalibration import setup_spotpy
+import spotpy as spt
+from IHSetUtils import BreakingPropagation
 
 class cal_IH_MOOSE(object):
     """
@@ -26,10 +26,13 @@ class cal_IH_MOOSE(object):
     
     This class reads input datasets, performs its calibration.
     """
-    def __init__(self, path_cross, path_long):
+    def __init__(self, path_cross, path_long, **kwargs):
         self.path_cross = path_cross
         self.path_long = path_long
         cfg = xr.open_dataset(path_cross+'config.nc')
+        
+        self.prof_orgin = kwargs['prof_orgin']
+        self.DirN = kwargs['DirN']
         
         self.crossshore = cfg['crossshore'].values
         self.switch_Yini = cfg['switch_Yini'].values
@@ -97,8 +100,8 @@ class cal_IH_MOOSE(object):
             self.cross.best_model_run = results[bestindex]
             fields=[word for word in self.cross.best_model_run.dtype.names if word.startswith('sim')]
             self.cross.best_simulation = list(self.cross.best_model_run[fields])
-                    
-            if self.switch_Yini == 0: 
+        
+            if self.switch_Yini == 0:
                 if self.switch_D == 0 and self.switch_r == 0:
                     self.cross.phi = self.cross.best_model_run['parphi']
                     self.cross.cp = self.cross.best_model_run['parcp']
@@ -125,6 +128,7 @@ class cal_IH_MOOSE(object):
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
                                                       self.cross.D, self.cross.Obs[0], self.cross.cp, self.cross.cm)
+                                
             if self.switch_Yini == 1:
                 self.cross.Yini = self.cross.best_model_run['parYini']
                 if self.switch_D == 0 and self.switch_r == 0:
