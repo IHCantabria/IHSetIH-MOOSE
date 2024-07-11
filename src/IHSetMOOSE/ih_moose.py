@@ -60,6 +60,7 @@ class ih_moose(object):
         
 
         parabola_num = kwargs['parabola_num']        
+        self.parabola_num = parabola_num
         if parabola_num == 1:
             Cp = kwargs['Cp']
             Cl = model.prof_orgin
