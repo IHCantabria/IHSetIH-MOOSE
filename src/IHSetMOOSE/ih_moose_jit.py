@@ -3,6 +3,7 @@ from numba import jit
 
 @jit
 def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
+    
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -14,6 +15,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
+        
         costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
@@ -28,6 +30,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
                 
         xg = np.array(costa_x) - centro[0]
         yg = np.array(costa_y) - centro[1]
+
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
         
@@ -46,6 +49,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
 
 @jit
 def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha):
+    
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -75,6 +79,7 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
             
         xg = costa_x - centro[0]
         yg = costa_y - centro[1]
+
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
         
@@ -93,10 +98,12 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
 
 @jit
 def initialize_array(shape, dtype):
+    
     return np.zeros(shape, dtype)
 
 @jit
 def intersect_with_min_distance(m, b, x1, y1):
+    
     min_distance = np.inf
     for i in range(len(x1)):
         distance = abs(m * x1[i] - y1[i] + b) / (m**2 + 1)**0.5
@@ -109,6 +116,7 @@ def intersect_with_min_distance(m, b, x1, y1):
 
 @jit
 def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): 
+    
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
@@ -200,6 +208,7 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
 
 @jit
 def reflect_point(x, y, m, b):
+    
     perp_m = -1/m
     perp_b = y - perp_m * x
 
@@ -213,6 +222,7 @@ def reflect_point(x, y, m, b):
 
 @jit
 def getAwayLims(Fmean):
+    
     if Fmean < 0.2:
         Fmean = 0.2
     elif Fmean > 359.8:
@@ -234,6 +244,7 @@ def getAwayLims(Fmean):
 
 @jit  
 def n2c(nDir):
+    
     cDir = 90.0 - nDir
     if cDir < -180.0:
         cDir += 360.0
@@ -242,6 +253,7 @@ def n2c(nDir):
 
 @jit    
 def hunt(T, d):   
+    
     g = 9.81
     G = (2 * np.pi / T) ** 2 * (d / g)
     F = G + 1.0 / (1 + 0.6522*G + 0.4622*G**2 + 0.0864*G**4 + 0.0675*G**5)
