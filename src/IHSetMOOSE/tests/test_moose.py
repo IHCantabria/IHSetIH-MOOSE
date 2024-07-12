@@ -198,7 +198,7 @@ ax[0].legend(ncol = 6, prop={'size': 6}, loc = 'upper center', bbox_to_anchor=(0
 
 for i in range(results.npro):
         print('**********************************************************')
-        print('Hybrid model')
+        print('Hybrid model (', results.parabola_num, 'Parabolic )')
         print('Metrics - Profile', results.profN[i]+1, '           | Validation |')
         print('RMSE [m]                       | %-5.2f      |' % (rmse[i][0]))
         print('Nash-Sutcliffe coefficient [-] | %-5.2f      |' % (nsse[i][0]))
