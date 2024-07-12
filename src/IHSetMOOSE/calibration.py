@@ -1,5 +1,8 @@
 import numpy as np
 import xarray as xr
+import spotpy as spt
+from IHSetCalibration import setup_spotpy
+from IHSetUtils import BreakingPropagation
 from IHSetMillerDean import calibration as cal_MD
 from IHSetMillerDean import millerDean
 from IHSetYates09 import calibration as cal_YA
@@ -14,9 +17,6 @@ from IHSetTurki import calibration as cal_TU
 from IHSetTurki import turki
 from IHSetJaramillo21a import calibration as cal_JA21a
 from IHSetJaramillo21a import jaramillo21a
-from IHSetCalibration import setup_spotpy
-import spotpy as spt
-from IHSetUtils import BreakingPropagation
 
 class cal_IH_MOOSE(object):
     """
