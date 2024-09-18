@@ -43,7 +43,7 @@ import time
 
 config = xr.Dataset(coords={'dt': 1,                  # [hours]
                             'switch_Yini': 1,         # Calibrate the initial S position? (0: No, 1: Yes)
-                            'crossshore' : 'JA',      # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
+                            'crossshore' : 'YA',      # EBSEM for cross-shore (MD, YA, SF, JA, LIM)
                             'switch_alpha_ini': 1,    # Calibrate the initial alpha position? (0: No, 1: Yes)
                             'longshore' : 'JA',       # EBSEM for longshore (TU, JA)
                             
