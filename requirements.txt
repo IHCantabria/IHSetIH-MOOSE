@@ -1,4 +1,4 @@
-﻿affine==2.4.0
+affine==2.4.0
 IHSetBernabeu @ git+https://github.com/IHCantabria/IHSetBernabeu.git@8e0aea199f00707fd405b08f3111ca24ca372bba
 IHSetDean @ git+https://github.com/IHCantabria/IHSetDean.git@df99ae6a79e94bac26779bad95e460402bd897d7
 IHSetGonzalez @ git+https://github.com/IHCantabria/IHSetGonzalez.git@afba853633dbaa69ec043852665f4c78d11df8ae
@@ -9,6 +9,7 @@ IHSetShoreFor @ git+https://github.com/defreitasL/IHSetShoreFor.git@b73e08ce03d4
 IHSetYates09 @ git+https://github.com/defreitasL/IHSetYates09.git@1dff09368a6d60f165ed8e6811e033c168675c5f
 IHSetTurki @ git+https://github.com/IHCantabria/IHSetTurki.git@c3eec1e8578ec575c27bfc7803210da86b3f4f4b
 IHSetLim @ git+https://github.com/IHCantabria/IHSetLim.git@3779118d9d6953ee51cc68dd07b7d5715ffd6bb8
+IHSetJara @ git+https://github.com/IHCantabria/IHSetJara.git@cc331ce82fbb076cc695098b5febf04846cb2e32
 matplotlib==3.8.3
 netCDF4==1.6.5
 numba==0.59.0
