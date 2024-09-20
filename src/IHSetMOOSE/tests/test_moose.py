@@ -40,7 +40,7 @@ import time
 #                             'metrics': 'mss_rmse',    # Metrics to be minimized (mss_rmse, mss_rho, mss_rmse_rho)
 #                             'n_pop': 50,              # Number of individuals in the population
 #                             'n_obj': 2,               # Number of objectives to be minimized 
-#                             'generations': 1000,      # Number of generations for the calibration algorithm
+#                             'generations': 500,      # Number of generations for the calibration algorithm
 #                             })              
 
 config = xr.Dataset(coords={'dt': 1,                  # [hours]
