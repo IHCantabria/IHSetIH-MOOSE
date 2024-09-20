@@ -9,6 +9,8 @@ from IHSetYates09 import calibration as cal_YA
 from IHSetYates09 import yates09
 from IHSetShoreFor import calibration as cal_SF
 from IHSetShoreFor import shoreFor
+from IHSetJara import calibration as cal_JR
+from IHSetJara import jara
 from IHSetJaramillo20 import calibration as cal_JA20
 from IHSetJaramillo20 import jaramillo20
 from IHSetLim import calibration as cal_LIM
@@ -157,7 +159,26 @@ class cal_IH_MOOSE(object):
                     self.cross.D = self.cross.best_model_run['parD']
                     self.cross.full_run, _ = shoreFor(self.cross.P, self.cross.Omega, self.cross.dt, self.cross.phi,
                                                       self.cross.D, self.cross.Yini, self.cross.cp, self.cross.cm)
-        
+
+        if self.crossshore == 'JR':
+            self.cross = cal_JR.cal_Jara(self.path_cross)
+            setup = setup_spotpy(self.cross)
+            results = setup.setup()
+            bestindex, self.cross.bestobjf = spt.analyser.get_minlikeindex(results)
+            self.cross.best_model_run = results[bestindex]
+            fields=[word for word in self.cross.best_model_run.dtype.names if word.startswith('sim')]
+            self.cross.best_simulation = list(self.cross.best_model_run[fields])
+            
+            self.cross.Ca = self.cross.best_model_run['parCa']
+            self.cross.Ce = self.cross.best_model_run['parCe']
+            if self.switch_Yini == 0:
+                self.cross.full_run = jara.jara(self.cross.Hb, self.cross.Hcr, self.cross.Obs[0], self.cross.dt, self.cross.gamma, self.cross.xc, self.cross.hc,
+                                                self.cross.B, self.cross.Ar, self.cross.hb_, self.cross.xre_, self.cross.pol, self.cross.Vol, self.cross.Ca, self.cross.Ce)
+            elif self.switch_Yini == 1:
+                self.cross.Yini = self.cross.best_model_run['parYini']
+                self.cross.full_run = jara.jara(self.cross.Hb, self.cross.Hcr, self.cross.Yini, self.cross.dt, self.cross.gamma, self.cross.xc, self.cross.hc,
+                                                self.cross.B, self.cross.Ar, self.cross.hb_, self.cross.xre_, self.cross.pol, self.cross.Vol, self.cross.Ca, self.cross.Ce)        
+
         if self.crossshore == 'JA':
             self.switch_vlt = cfg['switch_vlt'].values
             if self.switch_vlt == 0:
