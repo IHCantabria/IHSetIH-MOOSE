@@ -17,7 +17,7 @@ import time
                             
 #                             'depth': 20,              # Water depth [m] (MD, TU, JR, LIM)
 #                             'D50': .3e-3,             # Median grain size [m] (MD, TU, SF, JR, LIM)
-#                             'bathy_angle': 90-7.2,    # Bathymetry mean orientation [deg N] (MD, TU, JR, LIM)
+#                             'bathy_angle': 7.2,    # Bathymetry mean orientation [deg N] (MD, TU, JR, LIM)
 #                             'break_type': 'spectral', # Breaking type (spectral or linear) (MD, TU)
 #                             'xc' : 255,               # Cross-shore distance from shore to closure depth [m] (JR)
 #                             'hc' : 6,                 # Depth of closure [m] (JR)
@@ -51,7 +51,7 @@ config = xr.Dataset(coords={'dt': 1,                  # [hours]
                             
                             'depth': 20,              # Water depth [m] (MD, TU, JR, LIM)
                             'D50': .3e-3,             # Median grain size [m] (MD, TU, SF, JR, LIM)
-                            'bathy_angle': 90-7.2,    # Bathymetry mean orientation [deg N] (MD, TU, JR, LIM)
+                            'bathy_angle': 7.2,    # Bathymetry mean orientation [deg N] (MD, TU, JR, LIM)
                             'break_type': 'spectral', # Breaking type (spectral or linear) (MD, TU)
                             'xc' : 255,               # Cross-shore distance from shore to closure depth [m] (JR)
                             'hc' : 6,                 # Depth of closure [m] (JR)
