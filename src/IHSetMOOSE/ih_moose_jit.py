@@ -152,6 +152,33 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
         C1=0.9536+0.0078*beta-0.0004879*(beta**2)+0.0000182*(beta**3)-0.0000001281*(beta**4)
     C2=1-C0-C1
 
+    thed = np.arctan2(Yd - Yc, Xd - Xc) * 180 / np.pi
+    thed = 90 - thed
+    if thed < 0:
+        thed = 360 + thed
+    if flag_dir == 1:
+        if Fmean_o >= 270 and thed <= 90:
+            thed = 360 + thed
+        if Fmean_o <= 90 and thed >= 270:
+            thed = thed - 360
+        bt_ref = 90 - abs(thed - Fmean_o)
+    if flag_dir == -1:
+        if Fmean_o >= 270 and thed <= 90:
+            thed = 360 + thed
+        if Fmean_o <= 90 and thed >= 270:
+            thed = thed - 360
+        bt_ref = 90 - abs(Fmean_o - thed)
+    if bt_ref >= beta:
+        beta = bt_ref
+
+    # Elshinnawy et al. (2022)
+    if bt_ref > 70:
+        THE = 19 / ((1+np.exp(-0.3*(bt_ref-45)))**8270)
+        alp_gap = 0.277 - 0.0785 * 10**((bt_ref-THE)*np.pi/180)
+        C0 = 1 - bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180) + alp_gap
+        C1 = bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180)-2 * alp_gap
+        C2 = alp_gap
+    
     Ro=(X/Ld)/(np.sin(beta*np.pi/180))
     Ro=Ro*Ld
     
