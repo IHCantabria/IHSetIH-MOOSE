@@ -2,8 +2,7 @@ import numpy as np
 from numba import jit
 
 @jit
-def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha):
-    
+def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha, gamd):
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -16,7 +15,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     
     for i in range(len(dX)):
         
-        costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX[i])
+        costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
         xf, yf = intersect_with_min_distance(m, b, costa_x, costa_y)
@@ -48,8 +47,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     return S_PF
 
 @jit
-def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha):
-    
+def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha, gamd):
     npro = prof.shape[0]
     pivotDir = prof[pivotN,0]
     pivotXY = [prof[pivotN,1], prof[pivotN,2]]
@@ -61,8 +59,8 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
-        costa_x1, costa_y1 = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, dX[i])
-        costa_x2, costa_y2 = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, dX[i])
+        costa_x1, costa_y1 = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, gamd, dX[i])
+        costa_x2, costa_y2 = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, gamd, dX[i])
         costa_x = combine_arrays(costa_x1, costa_x2)
         costa_y = combine_arrays(costa_y1, costa_y2)
         
@@ -98,12 +96,10 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
 
 @jit
 def initialize_array(shape, dtype):
-    
     return np.zeros(shape, dtype)
 
 @jit
 def intersect_with_min_distance(m, b, x1, y1):
-    
     min_distance = np.inf
     for i in range(len(x1)):
         distance = abs(m * x1[i] - y1[i] + b) / (m**2 + 1)**0.5
@@ -115,8 +111,7 @@ def intersect_with_min_distance(m, b, x1, y1):
     return intersection_x, intersection_y
 
 @jit
-def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX): 
-    
+def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX): 
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
@@ -144,12 +139,23 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     beta_r=2.13
     alpha_min=(np.arctan((((((beta_r)**4)/16)+(((beta_r)**2)/2)*(X/Ld))**(1/2))/(X/Ld))*180/np.pi)
     beta=90-alpha_min
+    # Elshinnawy et al. (2022) - Static Equilibrium
     if beta <= 10:
         C0=0.0707-0.0047*10+0.000349*(10**2)-0.00000875*(10**3)+0.00000004765*(10**4)
         C1=0.9536+0.0078*10-0.0004879*(10**2)+0.0000182*(10**3)-0.0000001281*(10**4)
     else:
         C0=0.0707-0.0047*beta+0.000349*(beta**2)-0.00000875*(beta**3)+0.00000004765*(beta**4)
         C1=0.9536+0.0078*beta-0.0004879*(beta**2)+0.0000182*(beta**3)-0.0000001281*(beta**4)
+    
+    # Elshinnawy et al. (2022) - Dynamic Equilibrium
+    bt = beta*np.pi/180
+    if flag_dir == 1:
+        gamd = -gamd
+    if gamd != 0.0:
+        alp_st = 0.277 - 0.0785 * 10**(bt)
+        psi = (bt * np.cos(bt) + bt * np.sin(bt) * np.tan(gamd*np.pi/180)) / (np.sin(bt) - np.cos(bt) * np.tan(gamd*np.pi/180))
+        C0 = 1 - psi + alp_st
+        C1 = psi - 2 * alp_st
     C2=1-C0-C1
 
     thed = np.arctan2(Yd - Yc, Xd - Xc) * 180 / np.pi
@@ -171,14 +177,14 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
     if bt_ref >= beta:
         beta = bt_ref
 
-    # Elshinnawy et al. (2022)
+    # Elshinnawy et al. (2022) - Pocket Beach
     if bt_ref > 70:
         THE = 19 / ((1+np.exp(-0.3*(bt_ref-45)))**8270)
         alp_gap = 0.277 - 0.0785 * 10**((bt_ref-THE)*np.pi/180)
         C0 = 1 - bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180) + alp_gap
         C1 = bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180)-2 * alp_gap
         C2 = alp_gap
-    
+
     Ro=(X/Ld)/(np.sin(beta*np.pi/180))
     Ro=Ro*Ld
     
@@ -235,7 +241,6 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, dX):
 
 @jit
 def reflect_point(x, y, m, b):
-    
     perp_m = -1/m
     perp_b = y - perp_m * x
 
@@ -249,7 +254,6 @@ def reflect_point(x, y, m, b):
 
 @jit
 def getAwayLims(Fmean):
-    
     if Fmean < 0.2:
         Fmean = 0.2
     elif Fmean > 359.8:
@@ -271,7 +275,6 @@ def getAwayLims(Fmean):
 
 @jit  
 def n2c(nDir):
-    
     cDir = 90.0 - nDir
     if cDir < -180.0:
         cDir += 360.0
@@ -280,7 +283,6 @@ def n2c(nDir):
 
 @jit    
 def hunt(T, d):   
-    
     g = 9.81
     G = (2 * np.pi / T) ** 2 * (d / g)
     F = G + 1.0 / (1 + 0.6522*G + 0.4622*G**2 + 0.0864*G**4 + 0.0675*G**5)
