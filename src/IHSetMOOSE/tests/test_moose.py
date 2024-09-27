@@ -84,10 +84,10 @@ model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/da
 
 # IH-MOOSE for one planform
 results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
-                            Cp=[344915.384, 6266136.216], T=10, depth=20, Lr=1800, parabola_num=1)
+                            Cp=[344915.384, 6266136.216], T=10, depth=20, Lr=1800, gamd=0, parabola_num=1)
 # IH-MOOSE for two planforms
 # results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
-#                             Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, parabola_num=2)
+#                             Cp1=[343537.569816416, 6269248.981867335], Cp2=[344915.384, 6266136.216], T=10, depth=20, gamd=10, parabola_num=2)
 
 plt.rcParams.update({'font.family': 'serif'})
 plt.rcParams.update({'font.size': 7})
