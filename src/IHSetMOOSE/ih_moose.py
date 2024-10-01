@@ -65,11 +65,11 @@ class ih_moose(object):
             Cp = kwargs['Cp']
             Cl = model.prof_orgin
             Lr = kwargs['Lr']
-            self.S_PF = ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha)
+            self.S_PF = ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha, gamd)
         
         if parabola_num == 2:
             Cp1 = kwargs['Cp1']
             Cp2 = kwargs['Cp2']
             Cl = model.prof_orgin
             Lr = 0
-            self.S_PF = ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha)
+            self.S_PF = ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha, gamd)
