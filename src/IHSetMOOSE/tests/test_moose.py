@@ -80,7 +80,8 @@ config.to_netcdf(wrkDir+'/data_hybrid/Cross_shore/config.nc', engine='netcdf4')
 config.to_netcdf(wrkDir+'/data_hybrid/Longshore/config.nc', engine='netcdf4')
 
 # Calibration EBSEM
-model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/', prof_orgin=[342451.3627, 6267913.117], DirN=[100.26])
+# model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/', prof_orgin=[342451.3627, 6267913.117], DirN=[100.26])
+model = calibration.cal_IH_MOOSE(wrkDir+'/data_hybrid/Cross_shore/', wrkDir+'/data_hybrid/Longshore/')
 
 # IH-MOOSE for one planform
 results = ih_moose.ih_moose(wrkDir+'/data_hybrid/Profiles/', model, Fmean=109.2900, profN=[0, 1, 2, 3, 4], pivotNi=2,
