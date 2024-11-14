@@ -33,8 +33,8 @@ class cal_IH_MOOSE(object):
         self.path_long = path_long
         cfg = xr.open_dataset(path_cross+'config.nc')
         
-        self.prof_orgin = kwargs['prof_orgin']
-        self.DirN = kwargs['DirN']
+        # self.prof_orgin = kwargs['prof_orgin']
+        # self.DirN = kwargs['DirN']
         
         self.crossshore = cfg['crossshore'].values
         self.switch_Yini = cfg['switch_Yini'].values
