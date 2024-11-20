@@ -9,6 +9,9 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     
     S_PFo = initialize_array((len(dX), npro), np.float64)
     S_PF = initialize_array((len(dX), npro), np.float64)
+    costas_x = initialize_array((len(dX), npro), np.float64)
+    costas_y = initialize_array((len(dX), npro), np.float64)
+    
     pivotS = initialize_array((len(dX), 1), np.float64)
     X_PF = initialize_array((len(dX), 1), np.float64)
     Y_PF = initialize_array((len(dX), 1), np.float64)
@@ -32,7 +35,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
 
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
-        
+                
         costa_xf, costa_yf = rho * np.cos(theta), rho * np.sin(theta)
         costa_xf += centro[0]
         costa_yf += centro[1]
@@ -43,8 +46,10 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
             xf, yf = intersect_with_min_distance(m, b, costa_xf, costa_yf)
             squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
             S_PF[i, j] = np.sqrt(squared_distance)
+            costas_x[i, j] = xf
+            costas_y[i, j] = yf
             
-    return S_PF
+    return S_PF, costas_x, costas_y
 
 @jit
 def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha, gamd):
@@ -54,6 +59,9 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
     
     S_PFo = initialize_array((len(dX), npro), np.float64)
     S_PF = initialize_array((len(dX), npro), np.float64)
+    costas_x = initialize_array((len(dX), npro), np.float64)
+    costas_y = initialize_array((len(dX), npro), np.float64)
+    
     pivotS = initialize_array((len(dX), 1), np.float64)
     X_PF = initialize_array((len(dX), 1), np.float64)
     Y_PF = initialize_array((len(dX), 1), np.float64)
@@ -80,7 +88,7 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
 
         theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
         theta = theta0 - delta_alpha[i]
-        
+                
         costa_xf, costa_yf = rho * np.cos(theta), rho * np.sin(theta)
         costa_xf += centro[0]
         costa_yf += centro[1]
@@ -91,8 +99,10 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
             xf, yf = intersect_with_min_distance(m, b, costa_xf, costa_yf)
             squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
             S_PF[i, j] = np.sqrt(squared_distance)
+            costas_x[i, j] = xf
+            costas_y[i, j] = yf
             
-    return S_PF
+    return S_PF, costas_x, costas_y
 
 @jit
 def initialize_array(shape, dtype):
@@ -139,51 +149,13 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     beta_r=2.13
     alpha_min=(np.arctan((((((beta_r)**4)/16)+(((beta_r)**2)/2)*(X/Ld))**(1/2))/(X/Ld))*180/np.pi)
     beta=90-alpha_min
-    # Elshinnawy et al. (2022) - Static Equilibrium
     if beta <= 10:
         C0=0.0707-0.0047*10+0.000349*(10**2)-0.00000875*(10**3)+0.00000004765*(10**4)
         C1=0.9536+0.0078*10-0.0004879*(10**2)+0.0000182*(10**3)-0.0000001281*(10**4)
     else:
         C0=0.0707-0.0047*beta+0.000349*(beta**2)-0.00000875*(beta**3)+0.00000004765*(beta**4)
         C1=0.9536+0.0078*beta-0.0004879*(beta**2)+0.0000182*(beta**3)-0.0000001281*(beta**4)
-    
-    # Elshinnawy et al. (2022) - Dynamic Equilibrium
-    bt = beta*np.pi/180
-    if flag_dir == 1:
-        gamd = -gamd
-    if gamd != 0.0:
-        alp_st = 0.277 - 0.0785 * 10**(bt)
-        psi = (bt * np.cos(bt) + bt * np.sin(bt) * np.tan(gamd*np.pi/180)) / (np.sin(bt) - np.cos(bt) * np.tan(gamd*np.pi/180))
-        C0 = 1 - psi + alp_st
-        C1 = psi - 2 * alp_st
     C2=1-C0-C1
-
-    thed = np.arctan2(Yd - Yc, Xd - Xc) * 180 / np.pi
-    thed = 90 - thed
-    if thed < 0:
-        thed = 360 + thed
-    if flag_dir == 1:
-        if Fmean_o >= 270 and thed <= 90:
-            thed = 360 + thed
-        if Fmean_o <= 90 and thed >= 270:
-            thed = thed - 360
-        bt_ref = 90 - abs(thed - Fmean_o)
-    if flag_dir == -1:
-        if Fmean_o >= 270 and thed <= 90:
-            thed = 360 + thed
-        if Fmean_o <= 90 and thed >= 270:
-            thed = thed - 360
-        bt_ref = 90 - abs(Fmean_o - thed)
-    if bt_ref >= beta:
-        beta = bt_ref
-
-    # Elshinnawy et al. (2022) - Pocket Beach
-    if bt_ref > 70:
-        THE = 19 / ((1+np.exp(-0.3*(bt_ref-45)))**8270)
-        alp_gap = 0.277 - 0.0785 * 10**((bt_ref-THE)*np.pi/180)
-        C0 = 1 - bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180) + alp_gap
-        C1 = bt_ref*np.pi/180 / np.tan(bt_ref*np.pi/180)-2 * alp_gap
-        C2 = alp_gap
 
     Ro=(X/Ld)/(np.sin(beta*np.pi/180))
     Ro=Ro*Ld
