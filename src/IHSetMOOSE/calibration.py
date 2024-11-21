@@ -41,18 +41,18 @@ class cal_IH_MOOSE(object):
         self.switch_alpha_ini = cfg['switch_alpha_ini'].values
         
         if self.crossshore == 'MD':
-            wav = xr.open_dataset(path_cross+'wav.nc')
-            Hb, Dirb, depthb = BreakingPropagation(wav['Hs'].values,
-                                       wav['Tp'].values,
-                                       wav['Dir'].values,
-                                       np.full_like(wav['Hs'].values, cfg['depth'].values),
-                                       np.full_like(wav['Hs'].values, cfg['bathy_angle'].values),
-                                       cfg['break_type'].values)
-            wav['Hb'] = xr.DataArray(Hb, dims = 'Y', coords = {'Y': wav['Y']})
-            wav['Dirb'] = xr.DataArray(Dirb, dims = 'Y', coords = {'Y': wav['Y']})
-            wav['depthb'] = xr.DataArray(depthb, dims = 'Y', coords = {'Y': wav['Y']})
-            wav.to_netcdf(path_cross+'wavb.nc', engine='netcdf4')
-            wav.close()
+            # wav = xr.open_dataset(path_cross+'wav.nc')
+            # Hb, Dirb, depthb = BreakingPropagation(wav['Hs'].values,
+            #                            wav['Tp'].values,
+            #                            wav['Dir'].values,
+            #                            np.full_like(wav['Hs'].values, cfg['depth'].values),
+            #                            np.full_like(wav['Hs'].values, cfg['bathy_angle'].values),
+            #                            cfg['break_type'].values)
+            # wav['Hb'] = xr.DataArray(Hb, dims = 'Y', coords = {'Y': wav['Y']})
+            # wav['Dirb'] = xr.DataArray(Dirb, dims = 'Y', coords = {'Y': wav['Y']})
+            # wav['depthb'] = xr.DataArray(depthb, dims = 'Y', coords = {'Y': wav['Y']})
+            # wav.to_netcdf(path_cross+'wavb.nc', engine='netcdf4')
+            # wav.close()
             
             self.cross = cal_MD.cal_MillerDean(self.path_cross)
             setup = setup_spotpy(self.cross)
