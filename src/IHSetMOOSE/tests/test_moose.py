@@ -20,7 +20,7 @@ import time
 #                             'bathy_angle': 7.2,    # Bathymetry mean orientation [deg N] (MD, TU, JR, LIM)
 #                             'break_type': 'spectral', # Breaking type (spectral or linear) (MD, TU)
 #                             'xc' : 255,               # Cross-shore distance from shore to closure depth [m] (JR)
-#                             'hc' : 6,                 # Depth of closure [m] (JR)
+#                             'theta_max' : 36,         # Critical angle of repose [Deg.] (JR)
 #                             'Hberm': 1,               # Berm height [m] (MD, JR)
 #                             'flagP': 3,               # Parameter Proportionality (MD)
 #                             'switch_D': 0,            # Calibrate D independently? (0: No, 1: Yes) (SF)
