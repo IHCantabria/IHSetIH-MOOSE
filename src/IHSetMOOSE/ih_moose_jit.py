@@ -18,7 +18,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     
     for i in range(len(dX)):
         
-        costa_x, costa_y = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])
+        costa_x, costa_y, _ = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
         b = prof[pivotN,2] - m * prof[pivotN,1]        
         xf, yf = intersect_with_min_distance(m, b, costa_x, costa_y)
@@ -67,8 +67,8 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
     Y_PF = initialize_array((len(dX), 1), np.float64)
     
     for i in range(len(dX)):
-        costa_x1, costa_y1 = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, gamd, dX[i])
-        costa_x2, costa_y2 = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, gamd, dX[i])
+        costa_x1, costa_y1, _ = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, gamd, dX[i])
+        costa_x2, costa_y2, _ = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, gamd, dX[i])
         costa_x = combine_arrays(costa_x1, costa_x2)
         costa_y = combine_arrays(costa_y1, costa_y2)
         
@@ -167,7 +167,8 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
 
     R=Ro*(C0+C1*(beta/theta)+C2*((beta/theta)**2))
     dist = np.abs((-m *  Xc) + Yc - b) / np.sqrt(m**2 + 1)
-    y_alpha = np.linspace(0, dist, 250)
+    # y_alpha = np.linspace(0, dist, 250)
+    y_alpha = np.linspace(0, X, 250)
 
     x_alpha = (np.sqrt(((beta_r**4)/16)+(((beta_r)**2)/2)*(y_alpha/Ld)))*Ld
     rho, phi = np.sqrt(x_alpha**2 + y_alpha**2), np.arctan2(y_alpha, x_alpha)
@@ -209,7 +210,9 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     costa_xx = [item for sublist in x2 for item in sublist]
     costa_yy = [item for sublist in y2 for item in sublist]
 
-    return costa_xx, costa_yy
+    alpha_curve = np.column_stack((x_alpha, y_alpha))
+    
+    return costa_xx, costa_yy, alpha_curve
 
 @jit
 def reflect_point(x, y, m, b):
