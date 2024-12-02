@@ -27,7 +27,7 @@ config = {'crossshore' : 'YA',                                # EBSEM for cross-
          'Fmean': 109.2900,                                    # Mean energy flux (N)
          'parabola_num' : 2,                                   # Number of planform (1: One side or 2: Both sides)
          'Cp' : [344915.384, 6266136.216],                     # Diffraction point (if parabola_num = 1)
-         'Lr' : 1800,                                          # Beach length from control point (m)
+         'Lr' : 1800,                                          # Beach length from control point (m)  (if parabola_num = 1)
          'Cp1' : [343537.570, 6269248.982],                    # Diffraction point (if parabola_num = 2)
          'Cp2' : [344915.384, 6266136.216],                    # Diffraction point (if parabola_num = 2)
          'Cl': [342565.979, 6267899.479],                      # Control pint
