@@ -3,14 +3,28 @@ import numpy as np
 import json
 
 from IHSetMillerDean import calibration_2 as cal_MD
+from IHSetMillerDean import direct_run as MD_run
+
 from IHSetYates09 import calibration_2 as cal_YA
+from IHSetYates09 import direct_run as YA_run
+
 from IHSetShoreFor import calibration_2 as cal_SF
+from IHSetShoreFor import direct_run as SF_run
+
 from IHSetJara import calibration_2 as cal_JR
+from IHSetJara import direct_run as JR_run
+
 from IHSetJaramillo20 import calibration_2 as cal_JA20
+from IHSetJaramillo20 import direct_run as JA20_run
+
 from IHSetLim import calibration_2 as cal_LIM
+from IHSetLim import direct_run as LIM_run
 
 from IHSetTurki import calibration_2 as cal_TU
+from IHSetTurki import direct_run as TU_run
+
 from IHSetJaramillo21a import calibration_2 as cal_JA21a
+from IHSetJaramillo21a import direct_run as JA21a_run
 
 from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moose, initialize_array, intersect_with_min_distance
 
@@ -161,12 +175,11 @@ class equilibrium_planform(object):
         self.prof[:, 3] = self.xf
         self.prof[:, 4] = self.yf
 
-
 class cal_IH_MOOSE(object):
     """
     cal_IH_MOOSE
     
-    Configuration to calibfalse,and run the Jaramillo et al. (2020) Hybrid Model.
+    Configuration to calibfalse, and run the EBSEM.
     
     This class reads input datasets, performs its calibration.
     """
@@ -215,7 +228,57 @@ class cal_IH_MOOSE(object):
         
         self.long.calibrate()
         self.long_run = self.long.run_model(self.long.solution)
+
+
+class run_IH_MOOSE(object):
+    """
+    run_IH_MOOSE
+    
+    Run the EBSEM.
+    """
+
+    def __init__(self, path, params_cross, params_long):
         
+        self.path = path
+        data = xr.open_dataset(path)
+        cfg = json.loads(data.attrs['IH_MOOSE'])
+        
+        self.crossshore = cfg['crossshore']
+        self.longshore = cfg['longshore']
+        
+        if self.crossshore == 'MD':
+            cfg_c = json.loads(data.attrs['run_MillerDean'])
+            self.trs = cfg_c['trs']
+            self.cross = MD_run.MillerDean_run(self.path)
+        if self.crossshore == 'YA':
+            cfg_c = json.loads(data.attrs['run_Yates09'])
+            self.trs = cfg_c['trs']
+            self.cross = YA_run.Yates09_run(self.path)
+        if self.crossshore == 'SF':
+            cfg_c = json.loads(data.attrs['run_ShoreFor'])
+            self.trs = cfg_c['trs']
+            self.cross = SF_run.ShoreFor_run(self.path)
+        if self.crossshore == 'JR':
+            cfg_c = json.loads(data.attrs['run_Jara'])
+            self.trs = cfg_c['trs']
+            self.cross = JR_run.Jara_run(self.path)
+        if self.crossshore == 'JA':
+            cfg_c = json.loads(data.attrs['run_Jaramillo20'])
+            self.trs = cfg_c['trs']
+            self.cross = JA20_run.Jaramillo20_run(self.path)
+        if self.crossshore == 'LIM':
+            cfg_c = json.loads(data.attrs['run_Lim'])
+            self.trs = cfg_c['trs']
+            self.cross = LIM_run.Lim_run(self.path)
+        
+        if self.longshore == 'TU':
+            self.long = TU_run.Turki_run(self.path)
+        if self.longshore == 'JA':
+            self.long = JA21a_run.Jaramillo21a_run(self.path)
+
+        self.cross_run = self.cross.run_model(params_cross)
+        self.long_run = self.long.run_model(params_long)
+
 def combine_arrays(x1, x2):
     x_bt = np.linspace(x1[-1], x2[-1])
     combined_length = len(x1) + len(x_bt) + len(x2)
