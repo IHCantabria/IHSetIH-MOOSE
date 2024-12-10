@@ -1,6 +1,7 @@
 import xarray as xr
 import numpy as np
 import json
+import pandas as pd
 
 from IHSetMillerDean import calibration_2 as cal_MD
 from IHSetMillerDean import direct_run as MD_run
@@ -36,15 +37,17 @@ class ih_moose(object):
         """
         self.path = path
         data = xr.open_dataset(path)
-        self.trs = model.trs
-                
+        
+        self.trs = model.trs        
         S = model.cross_run
         alp = model.long_run
         
         if self.trs == 'Average':
             print('Please select the specific transect')
         else:
+            self.time = pd.to_datetime(data.time.values)
             self.Obs = data.obs.values
+            self.time_obs = pd.to_datetime(data.time_obs.values)
             self.ntrs_xi = data.xi.values
             self.ntrs_yi =  data.yi.values
             self.ntrs_xf =  data.xf.values
@@ -52,8 +55,8 @@ class ih_moose(object):
             ntrs =  data.ntrs.values
             self.ntrs = ntrs[-1] + 1
         
-        mkIdx = np.vectorize(lambda t: np.argmin(np.abs(model.cross.time - t)))
-        self.idx_obs = mkIdx(model.cross.time_obs)
+        mkIdx = np.vectorize(lambda t: np.argmin(np.abs(self.time - t)))
+        self.idx_obs = mkIdx(self.time_obs)
                 
         DirN = 90 - np.arctan((self.ntrs_yi[self.trs] - self.ntrs_yf[self.trs]) / (self.ntrs_xi[self.trs] - self.ntrs_xf[self.trs])) * 180 / np.pi
         self.Cl = [self.ntrs_xi[self.trs], self.ntrs_yi[self.trs]]
@@ -64,7 +67,8 @@ class ih_moose(object):
         delta_alpha = alp - np.mean(alp)
         delta_alpha = delta_alpha * np.pi / 180
     
-        if planform.parabola_num == 1:                        
+        if planform.parabola_num == 1:
+            print('Start Simulating IH-MOOSE...')                           
             xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.x_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
@@ -72,6 +76,7 @@ class ih_moose(object):
             self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(planform.prof, pivotN, planform.Fmean, planform.Cp, self.Cl, planform.T, planform.depth, planform.Lr, dX, delta_alpha, 0)
         
         if planform.parabola_num == 2:
+            print('Start Simulating IH-MOOSE...')   
             xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.x_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
@@ -81,6 +86,7 @@ class ih_moose(object):
         self.SS = initialize_array((len(dX), self.ntrs), np.float64)
         
         for j in range(self.ntrs):
+            print('Start Calculating Transect', j+1, 'Position...')   
             m = (self.ntrs_yf[j] - self.ntrs_yi[j]) / (self.ntrs_xf[j] - self.ntrs_xi[j])
             b = self.ntrs_yi[j] - m * self.ntrs_xi[j]
             for i in range(len(dX)):
