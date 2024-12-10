@@ -86,7 +86,7 @@ class ih_moose(object):
         self.SS = initialize_array((len(dX), self.ntrs), np.float64)
         
         for j in range(self.ntrs):
-            print('Start Calculating Transect', j+1, 'Position...')   
+            print('Calculating Transect', j+1, 'Shoreline Position...')   
             m = (self.ntrs_yf[j] - self.ntrs_yi[j]) / (self.ntrs_xf[j] - self.ntrs_xi[j])
             b = self.ntrs_yi[j] - m * self.ntrs_xi[j]
             for i in range(len(dX)):
