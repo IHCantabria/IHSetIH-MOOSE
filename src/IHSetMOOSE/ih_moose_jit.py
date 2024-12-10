@@ -19,7 +19,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
     for i in range(len(dX)):
         # Print progress
         if i % (len(dX) // 10) == 0:
-            print(f"Iteration {i}/{len(dX)}")     
+            print("Simlulated", round(i/len(dX)*100), f"% ({i}/{len(dX)})")           
         
         costa_x, costa_y, _ = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])
         m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
@@ -72,7 +72,7 @@ def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta
     for i in range(len(dX)):
         # Print progress
         if i % (len(dX) // 10) == 0:
-            print(f"Iteration {i}/{len(dX)}")     
+            print("Simlulated", round(i/len(dX)*100), f"% ({i}/{len(dX)})")           
             
         costa_x1, costa_y1, _ = gonzalez_ih_moose(Fmean, Cp1, Cl, T, depth, Lr, gamd, dX[i])
         costa_x2, costa_y2, _ = gonzalez_ih_moose(Fmean, Cp2, Cl, T, depth, Lr, gamd, dX[i])
