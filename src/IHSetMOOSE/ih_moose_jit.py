@@ -21,9 +21,7 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
         if i % (len(dX) // 10) == 0:
             print("Predicted", round(i/len(dX)*100), f"% ({i}/{len(dX)}) of Shorelines") 
         
-        costa_x, costa_y, _ = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])
-        # m = (prof[pivotN,4] - prof[pivotN,2]) / (prof[pivotN,3] - prof[pivotN,1])
-        # b = prof[pivotN,2] - m * prof[pivotN,1]        
+        costa_x, costa_y, _ = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])     
         xf, yf = intersect_with_min_distance(costa_x, costa_y, prof[pivotN,:])
         squared_distance = ((xf - prof[pivotN, 1])**2 + (yf - prof[pivotN, 2])**2)
         S_PFo = np.sqrt(squared_distance)
@@ -44,8 +42,6 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
         costa_yf += centro[1]
         
         for j in range(npro):
-            # m = (prof[j,4] - prof[j,2]) / (prof[j,3] - prof[j,1])
-            # b = prof[j,2] - m * prof[j,1]
             xf, yf = intersect_with_min_distance(costa_xf, costa_yf, prof[j,:])
             squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
             S_PF[i, j] = np.sqrt(squared_distance)
