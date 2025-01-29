@@ -181,7 +181,7 @@ def gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     rho, phi = np.sqrt(x_alpha**2 + y_alpha**2), np.arctan2(y_alpha, x_alpha)
     x_alpha, y_alpha = Xd + rho * np.cos(phi+(Fmean)*np.pi/180), Yd + rho * np.sin(phi+(Fmean)*np.pi/180)
     theta_rad = np.deg2rad(theta+Fmean)
-    Lrr = np.linspace(0, Lr)
+    Lrr = np.linspace(0, 180 - len(theta))
 
     if Fmean_o > 0 and Fmean_o <= 180:
         x = Xd + R * np.cos(theta_rad)
