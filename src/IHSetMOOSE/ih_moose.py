@@ -87,10 +87,9 @@ class ih_moose(object):
         
         for j in range(self.ntrs):
             print('Calculating Transect', j+1, 'Shoreline Position...')   
-            m = (self.ntrs_yf[j] - self.ntrs_yi[j]) / (self.ntrs_xf[j] - self.ntrs_xi[j])
-            b = self.ntrs_yi[j] - m * self.ntrs_xi[j]
+            prof = [self.ntrs_xi[j], self.ntrs_xi[j], self.ntrs_yi[j], self.ntrs_xf[j], self.ntrs_yf[j]]
             for i in range(len(dX)):
-                xf, yf = intersect_with_min_distance(m, b, self.costas_x[i,:], self.costas_y[i,:])
+                xf, yf = intersect_with_min_distance(self.costas_x[i,:], self.costas_y[i,:], prof)
                 squared_distance = ((xf - self.ntrs_xi[j])**2 + (yf - self.ntrs_yi[j])**2)
                 self.SS[i, j] = np.sqrt(squared_distance)
             
@@ -141,40 +140,12 @@ class equilibrium_planform(object):
             self.costa_xf = combine_arrays(costa_xf1, costa_xf2)
             self.costa_yf = combine_arrays(costa_yf1, costa_yf2)
     
-        Fmeand = self.Fmean * np.pi/180
-        rotation_matrix = np.array([[np.cos(Fmeand), -np.sin(Fmeand)],
-                                [np.sin(Fmeand), np.cos(Fmeand)]])
-        reverse_rotation_matrix = np.array([[np.cos(-Fmeand), -np.sin(-Fmeand)],
-                                        [np.sin(-Fmeand), np.cos(-Fmeand)]])
-    
-        # Process initial points (i)
         original_points_i = np.vstack((self.costa_xi, self.costa_yi))
-        closestPt1i = np.argmin(np.linalg.norm(original_points_i.T - self.lim[0], axis=1))
-        closestPt2i = np.argmin(np.linalg.norm(original_points_i.T - self.lim[1], axis=1))
-    
-        rotated_points_i = rotation_matrix.dot(original_points_i[:,min(closestPt1i,closestPt2i):max(closestPt1i,closestPt2i)])
-        rot_xi, rot_yi = rotated_points_i
-        sorted_indices_i = np.argsort(rot_xi)
-        xi = np.linspace(np.min(rot_xi), np.max(rot_xi), self.npro)
-        yi = np.interp(xi, rot_xi[sorted_indices_i], rot_yi[sorted_indices_i])
-        rotated_points_array_i = np.vstack((xi, yi))
-        reverted_points_i = reverse_rotation_matrix.dot(rotated_points_array_i)
-        self.xi, self.yi = reverted_points_i
-
-        # Process final points (f)
         original_points_f = np.vstack((self.costa_xf, self.costa_yf))    
-        closestPt1f = np.argmin(np.linalg.norm(original_points_f.T - self.lim[0], axis=1))
-        closestPt2f = np.argmin(np.linalg.norm(original_points_f.T - self.lim[1], axis=1))
-    
-        rotated_points_f = rotation_matrix.dot(original_points_f[:,min(closestPt1f,closestPt2f):max(closestPt1f,closestPt2f)])
-        rot_xf, rot_yf = rotated_points_f
-        sorted_indices_f = np.argsort(rot_xf)
-        xf = np.linspace(np.min(rot_xf), np.max(rot_xf), self.npro)
-        yf = np.interp(xf, rot_xf[sorted_indices_f], rot_yf[sorted_indices_f])
-        rotated_points_array_f = np.vstack((xf, yf))
-        reverted_points_f = reverse_rotation_matrix.dot(rotated_points_array_f)
-        self.xf, self.yf = reverted_points_f
-       
+        self.xi, self.yi = original_points_i
+        self.xf, self.yf = original_points_f
+        self.prof = np.zeros((len(self.xi), 5))
+        
         self.prof[:, 0] = 90 - np.arctan((self.yi - self.yf) / (self.xi - self.xf)) * 180 / np.pi
         self.prof[:, 1] = self.xi
         self.prof[:, 2] = self.yi
