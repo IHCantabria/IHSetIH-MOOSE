@@ -103,16 +103,11 @@ class equilibrium_planform(object):
         data = xr.open_dataset(path)
         cfg = json.loads(data.attrs['IH_MOOSE'])
         
-        self.lim = cfg['lim']
         self.Fmean = cfg['Fmean']
         self.T = cfg['T']
         self.depth = cfg['hd']
         self.parabola_num = cfg['parabola_num']
-        
-        self.npro = cfg['npro']
         self.lpro = cfg['lpro']
-        self.prof = np.zeros((self.npro, 5))
-        
         self.Cl = cfg['Cl']
         
         if self.parabola_num == 1:
