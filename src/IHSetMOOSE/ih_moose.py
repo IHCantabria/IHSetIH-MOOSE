@@ -149,6 +149,34 @@ class equilibrium_planform(object):
         self.prof[:, 3] = self.xf
         self.prof[:, 4] = self.yf
 
+class plotting_planform(object):
+    
+    def __init__(self, **kwargs):
+        """
+        Jaramillo et al. 2021 model
+        """
+        
+        self.Fmean = kwargs['Fmean']
+        self.T = kwargs['T']
+        self.depth = kwargs['hd']
+        self.parabola_num = kwargs['parabola_num']
+        self.Cl = kwargs['Cl']
+        
+        if self.parabola_num == 1:
+            self.Cp = kwargs['Cp']
+            self.Lr = kwargs['Lr']
+            self.costa_xe, self.costa_ye, self.alpha_curve = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0)
+            
+        if self.parabola_num == 2:
+            self.Cp1 = kwargs['Cp1']
+            self.Cp2 = kwargs['Cp2']
+            costa_xe1, costa_ye1, self.alpha_curve1 = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0)
+            costa_xe2, costa_ye2, self.alpha_curve2 = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0)
+            self.costa_xe = combine_arrays(costa_xe1, costa_xe2)
+            self.costa_ye = combine_arrays(costa_ye1, costa_ye2)
+            
+        self.coast = np.vstack((self.costa_xe, self.costa_ye))
+
 class cal_IH_MOOSE(object):
     """
     cal_IH_MOOSE
