@@ -20,9 +20,9 @@ def toc():
 
 config = {'crossshore' : 'YA',                                # EBSEM for cross-shore (MD, YA, SF, JR, JA, LIM)
          'longshore' : 'JA',                                   # EBSEM for longshore (TU, JA)
-         'lim': [[(343241.26261840697, 6269439.614534981)],
-         [(342874.0174683322, 6266120.806512082)]],            # Simulation boundary
-         'npro': 100,                                          # Number of simulating profiles
+         # 'lim': [[(343241.26261840697, 6269439.614534981)],
+         # [(342874.0174683322, 6266120.806512082)]],            # Simulation boundary
+         # 'npro': 100,                                          # Number of simulating profiles
          'lpro': 500,                                          # Length of simulating profiles
          'Fmean': 109.2900,                                    # Mean energy flux (N)
          'parabola_num' : 2,                                   # Number of planform (1: One side or 2: Both sides)
