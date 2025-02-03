@@ -105,16 +105,11 @@ class equilibrium_planform(object):
         data = xr.open_dataset(path)
         cfg = json.loads(data.attrs['IH_MOOSE'])
         
-        # self.lim = cfg['lim']
         self.Fmean = cfg['Fmean']
         self.T = cfg['T']
         self.depth = cfg['hd']
         self.parabola_num = cfg['parabola_num']
-        
-        # self.npro = cfg['npro']
         self.lpro = cfg['lpro']
-        # self.prof = np.zeros((self.npro, 5))
-        
         self.Cl = cfg['Cl']
         
         if self.parabola_num == 1:
@@ -297,7 +292,7 @@ def combine_arrays(x1, x2):
         
     return combined
 
-def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX): 
+def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX, Scale): 
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
@@ -334,7 +329,7 @@ def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     C2=1-C0-C1
 
     Ro=(X/Ld)/(np.sin(beta*np.pi/180))
-    Ro=Ro*Ld
+    Ro=Ro*Ld*Scale
     
     theta0=np.arange(np.ceil(beta), 181, 1)
     theta=np.zeros(len(theta0)+1)
@@ -349,7 +344,8 @@ def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     rho, phi = np.sqrt(x_alpha**2 + y_alpha**2), np.arctan2(y_alpha, x_alpha)
     x_alpha, y_alpha = Xd + rho * np.cos(phi+(Fmean)*np.pi/180), Yd + rho * np.sin(phi+(Fmean)*np.pi/180)
     theta_rad = np.deg2rad(theta+Fmean)
-    Lrr = np.linspace(0, Lr, 180 - len(theta))
+    
+    Lrr = np.linspace(0, Lr, 180)
 
     if Fmean_o > 0 and Fmean_o <= 180:
         x = Xd + R * np.cos(theta_rad)
@@ -388,7 +384,7 @@ def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX):
     alpha_curve = np.column_stack((x_alpha, y_alpha))
     
     return costa_xx, costa_yy, alpha_curve
-
+    
 def reflect_point(x, y, m, b):
     """
     Reflects a point (x, y) over a line y = mx + b.
