@@ -105,38 +105,43 @@ class equilibrium_planform(object):
         data = xr.open_dataset(path)
         cfg = json.loads(data.attrs['IH_MOOSE'])
         
+        # self.lim = cfg['lim']
         self.Fmean = cfg['Fmean']
         self.T = cfg['T']
         self.depth = cfg['hd']
         self.parabola_num = cfg['parabola_num']
+        
+        # self.npro = cfg['npro']
         self.lpro = cfg['lpro']
+        # self.prof = np.zeros((self.npro, 5))
+        
         self.Cl = cfg['Cl']
         
         if self.parabola_num == 1:
             self.Cp = cfg['Cp']
             self.Lr = cfg['Lr']
-            self.costa_xe, self.costa_ye, self.alpha_curve = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0)
-            self.costa_xi, self.costa_yi, _ = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, self.lpro/2)
-            self.costa_xf, self.costa_yf, _ = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, -self.lpro/2)
+            self.costa_xe, self.costa_ye, self.alpha_curve = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0)
+            self.costa_xi, self.costa_yi, _ = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, self.lpro/2)
+            self.costa_xf, self.costa_yf, _ = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, -self.lpro/2)
             
         if self.parabola_num == 2:
             self.Cp1 = cfg['Cp1']
             self.Cp2 = cfg['Cp2']
-            costa_xe1, costa_ye1, self.alpha_curve1 = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0)
-            costa_xe2, costa_ye2, self.alpha_curve2 = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0)
+            costa_xe1, costa_ye1, self.alpha_curve1 = gonzalez_ih_moose(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0)
+            costa_xe2, costa_ye2, self.alpha_curve2 = gonzalez_ih_moose(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0)
             self.costa_xe = combine_arrays(costa_xe1, costa_xe2)
             self.costa_ye = combine_arrays(costa_ye1, costa_ye2)
             
-            costa_xi1, costa_yi1, _ = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, self.lpro/2)
-            costa_xi2, costa_yi2, _ = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, self.lpro/2)
+            costa_xi1, costa_yi1, _ = gonzalez_ih_moose(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, self.lpro/2)
+            costa_xi2, costa_yi2, _ = gonzalez_ih_moose(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, self.lpro/2)
             self.costa_xi = combine_arrays(costa_xi1, costa_xi2)
             self.costa_yi = combine_arrays(costa_yi1, costa_yi2)
         
-            costa_xf1, costa_yf1, _ = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, -self.lpro/2)
-            costa_xf2, costa_yf2, _ = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, -self.lpro/2)
+            costa_xf1, costa_yf1, _ = gonzalez_ih_moose(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, -self.lpro/2)
+            costa_xf2, costa_yf2, _ = gonzalez_ih_moose(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, -self.lpro/2)
             self.costa_xf = combine_arrays(costa_xf1, costa_xf2)
             self.costa_yf = combine_arrays(costa_yf1, costa_yf2)
-    
+
         original_points_i = np.vstack((self.costa_xi, self.costa_yi))
         original_points_f = np.vstack((self.costa_xf, self.costa_yf))    
         self.xi, self.yi = original_points_i
@@ -148,7 +153,7 @@ class equilibrium_planform(object):
         self.prof[:, 2] = self.yi
         self.prof[:, 3] = self.xf
         self.prof[:, 4] = self.yf
-
+        
 class plotting_planform(object):
     
     def __init__(self, **kwargs):
@@ -161,17 +166,18 @@ class plotting_planform(object):
         self.depth = kwargs['hd']
         self.parabola_num = kwargs['parabola_num']
         self.Cl = kwargs['Cl']
+        self.Scale = kwargs['Scale']
         
         if self.parabola_num == 1:
             self.Cp = kwargs['Cp']
             self.Lr = kwargs['Lr']
-            self.costa_xe, self.costa_ye, self.alpha_curve = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0)
+            self.costa_xe, self.costa_ye, self.alpha_curve = parabolic_planform(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0, self.Scale)
             
         if self.parabola_num == 2:
             self.Cp1 = kwargs['Cp1']
             self.Cp2 = kwargs['Cp2']
-            costa_xe1, costa_ye1, self.alpha_curve1 = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0)
-            costa_xe2, costa_ye2, self.alpha_curve2 = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0)
+            costa_xe1, costa_ye1, self.alpha_curve1 = parabolic_planform(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0, self.Scale)
+            costa_xe2, costa_ye2, self.alpha_curve2 = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0, self.Scale)
             self.costa_xe = combine_arrays(costa_xe1, costa_xe2)
             self.costa_ye = combine_arrays(costa_ye1, costa_ye2)
             
