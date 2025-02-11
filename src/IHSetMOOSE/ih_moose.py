@@ -177,7 +177,7 @@ class plotting_planform(object):
             costa_xe2, costa_ye2, self.alpha_curve2 = parabolic_planform(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0, self.Scale)
             self.costa_xe = combine_arrays(costa_xe1, costa_xe2)
             self.costa_ye = combine_arrays(costa_ye1, costa_ye2)
-            self.costa_xe, self.costa_ye = process_shoreline_data(self.costa_xe, self.costa_ye, self.Fmean)
+            # self.costa_xe, self.costa_ye = process_shoreline_data(self.costa_xe, self.costa_ye, self.Fmean)
             
         self.coast = np.vstack((self.costa_xe, self.costa_ye))
 
@@ -331,6 +331,25 @@ def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX, Scale):
         C1=0.9536+0.0078*beta-0.0004879*(beta**2)+0.0000182*(beta**3)-0.0000001281*(beta**4)
     C2=1-C0-C1
 
+    thed = np.arctan2(Yd - Yc, Xd - Xc) * 180 / np.pi
+    thed = 90 - thed
+    if thed < 0:
+        thed = 360 + thed
+    if flag_dir == 1:
+        if Fmean_o >= 270 and thed <= 90:
+            thed = 360 + thed
+        if Fmean_o <= 90 and thed >= 270:
+            thed = thed - 360
+        bt_ref = 90 - abs(thed - Fmean_o)
+    if flag_dir == -1:
+        if Fmean_o >= 270 and thed <= 90:
+            thed = 360 + thed
+        if Fmean_o <= 90 and thed >= 270:
+            thed = thed - 360
+        bt_ref = 90 - abs(Fmean_o - thed)
+    if bt_ref >= beta:
+        beta = bt_ref
+        
     Ro=(X/Ld)/(np.sin(beta*np.pi/180))
     Ro=Ro*Ld*Scale
     
@@ -438,24 +457,24 @@ def getAwayLims(Fmean):
     return Fmean
 
 
-def process_shoreline_data(costa_xe, costa_ye, Fmean, num_points=100):
-    xc = costa_xe - np.mean(costa_xe)
-    yc = costa_ye - np.mean(costa_ye)
+# def process_shoreline_data(costa_xe, costa_ye, Fmean, num_points=100):
+#     xc = costa_xe - np.mean(costa_xe)
+#     yc = costa_ye - np.mean(costa_ye)
     
-    Fmeand = (90 - Fmean) * np.pi/180
-    Fmeand = np.mod(Fmeand, 2 * np.pi)
+#     Fmeand = (90 - Fmean) * np.pi/180
+#     Fmeand = np.mod(Fmeand, 2 * np.pi)
     
-    r = np.sqrt(xc**2 + yc**2)
-    theta = np.arctan2(yc, xc)
-    theta = np.mod(theta - Fmeand, 2 * np.pi)
-    theta_new = np.linspace(np.min(theta), np.max(theta), num_points)
+#     r = np.sqrt(xc**2 + yc**2)
+#     theta = np.arctan2(yc, xc)
+#     theta = np.mod(theta - Fmeand, 2 * np.pi)
+#     theta_new = np.linspace(np.min(theta), np.max(theta), num_points)
     
-    interp_func = interp1d(theta, r, kind='linear', fill_value='extrapolate')
-    r_new = interp_func(theta_new)
-    r_new = gaussian_filter1d(r_new, sigma=2)
+#     interp_func = interp1d(theta, r, kind='linear', fill_value='extrapolate')
+#     r_new = interp_func(theta_new)
+#     r_new = gaussian_filter1d(r_new, sigma=2)
     
-    costa_xe_new = r_new * np.cos(theta_new+Fmeand) + np.mean(costa_xe)
-    costa_ye_new = r_new * np.sin(theta_new+Fmeand) + np.mean(costa_ye) 
+#     costa_xe_new = r_new * np.cos(theta_new+Fmeand) + np.mean(costa_xe)
+#     costa_ye_new = r_new * np.sin(theta_new+Fmeand) + np.mean(costa_ye) 
 
 
 
