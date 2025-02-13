@@ -35,16 +35,21 @@ from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moos
 
 class ih_moose(object):
     
-    def __init__(self, path, planform, model):
+    def __init__(self, path, planform, transect, cross_run, long_run):
+    # def __init__(self, path, planform, model):        
         """
         Jaramillo et al. 2021 model
         """
         self.path = path
         data = xr.open_dataset(path)
         
-        self.trs = model.trs        
-        S = model.cross_run
-        alp = model.long_run
+        # self.trs = model.trs        
+        # S = model.cross_run
+        # alp = model.long_run
+        
+        self.trs = transect       
+        S = cross_run
+        alp = long_run
         
         if self.trs == 'Average':
             print('Please select the specific transect')
