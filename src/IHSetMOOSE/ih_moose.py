@@ -35,7 +35,7 @@ from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moos
 
 class ih_moose(object):
     
-    def __init__(self, path, planform, transect, cross_run, long_run):
+    def __init__(self, path, planform, cross_run, long_run):
     # def __init__(self, path, planform, model):        
         """
         Jaramillo et al. 2021 model
@@ -47,7 +47,7 @@ class ih_moose(object):
         # S = model.cross_run
         # alp = model.long_run
         
-        self.trs = transect       
+        self.trs = find_min_distance(data.x_pivotal.values, data.x_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.xf.values)         
         S = cross_run
         alp = long_run
         
@@ -459,3 +459,17 @@ def getAwayLims(Fmean):
         Fmean = 270.2
         
     return Fmean
+
+def find_min_distance(x, y, xi, yi, xf, yf):    
+    min_distance = np.inf
+    i = None
+    
+    for i in range(len(xi)):
+        m = (yf[i] - yi[i]) / (xf[i] - xi[i])
+        b = yi[i] - m * xi[i]
+        distance = abs(m * x - y + b) / (m**2 + 1)**0.5
+        if distance < min_distance:
+            min_distance = distance
+            idx = i
+    
+    return idx
