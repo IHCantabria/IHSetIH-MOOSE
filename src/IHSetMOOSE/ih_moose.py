@@ -4,48 +4,16 @@ import json
 import pandas as pd
 from IHSetUtils import hunt
 from IHSetUtils.geometry import nauticalDir2cartesianDirP as n2c
-from scipy.interpolate import interp1d
-from scipy.ndimage import gaussian_filter1d
-
-from IHSetMillerDean import calibration_2 as cal_MD
-from IHSetMillerDean import direct_run as MD_run
-
-from IHSetYates09 import calibration_2 as cal_YA
-from IHSetYates09 import direct_run as YA_run
-
-from IHSetShoreFor import calibration_2 as cal_SF
-from IHSetShoreFor import direct_run as SF_run
-
-from IHSetJara import calibration_2 as cal_JR
-from IHSetJara import direct_run as JR_run
-
-from IHSetJaramillo20 import calibration_2 as cal_JA20
-from IHSetJaramillo20 import direct_run as JA20_run
-
-from IHSetLim import calibration_2 as cal_LIM
-from IHSetLim import direct_run as LIM_run
-
-from IHSetTurki import calibration_2 as cal_TU
-from IHSetTurki import direct_run as TU_run
-
-from IHSetJaramillo21a import calibration_2 as cal_JA21a
-from IHSetJaramillo21a import direct_run as JA21a_run
-
 from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moose, initialize_array, intersect_with_min_distance
 
 class ih_moose(object):
     
-    def __init__(self, path, planform, cross_run, long_run):
-    # def __init__(self, path, planform, model):        
+    def __init__(self, path, planform, cross_run, long_run):  
         """
         Jaramillo et al. 2021 model
         """
         self.path = path
         data = xr.open_dataset(path)
-        
-        # self.trs = model.trs        
-        # S = model.cross_run
-        # alp = model.long_run
         
         self.trs = find_min_distance(data.x_pivotal.values, data.x_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.xf.values)         
         S = cross_run
@@ -184,111 +152,7 @@ class plotting_planform(object):
             self.costa_ye = combine_arrays(costa_ye1, costa_ye2)
             
         self.coast = np.vstack((self.costa_xe, self.costa_ye))
-
-class cal_IH_MOOSE(object):
-    """
-    cal_IH_MOOSE
-    
-    Configuration to calibfalse, and run the EBSEM.
-    
-    This class reads input datasets, performs its calibration.
-    """
-
-    def __init__(self, path):
         
-        self.path = path
-        data = xr.open_dataset(path)
-        cfg = json.loads(data.attrs['IH_MOOSE'])
-        
-        self.crossshore = cfg['crossshore']
-        self.longshore = cfg['longshore']
-        
-        if self.crossshore == 'MD':
-            cfg_c = json.loads(data.attrs['MillerDean'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_MD.cal_MillerDean_2(self.path)
-        if self.crossshore == 'YA':
-            cfg_c = json.loads(data.attrs['Yates09'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_YA.cal_Yates09_2(self.path)
-        if self.crossshore == 'SF':
-            cfg_c = json.loads(data.attrs['ShoreFor'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_SF.cal_ShoreFor_2(self.path)
-        if self.crossshore == 'JR':
-            cfg_c = json.loads(data.attrs['Jara'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_JR.cal_Jara_2(self.path)
-        if self.crossshore == 'JA':
-            cfg_c = json.loads(data.attrs['Jaramillo20'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_JA20.cal_Jaramillo20_2(self.path)
-        if self.crossshore == 'LIM':
-            cfg_c = json.loads(data.attrs['Lim'])
-            self.trs = cfg_c['trs']
-            self.cross = cal_LIM.cal_Lim_2(self.path)
-        
-        if self.longshore == 'TU':
-            self.long = cal_TU.cal_Turki_2(self.path)
-        if self.longshore == 'JA':
-            self.long = cal_JA21a.cal_Jaramillo21a_2(self.path)
-
-        self.cross.calibrate()
-        self.cross_run = self.cross.run_model(self.cross.solution)
-        
-        self.long.calibrate()
-        self.long_run = self.long.run_model(self.long.solution)
-
-
-class run_IH_MOOSE(object):
-    """
-    run_IH_MOOSE
-    
-    Run the EBSEM.
-    """
-
-    def __init__(self, path, params_cross, params_long):
-        
-        self.path = path
-        data = xr.open_dataset(path)
-        cfg = json.loads(data.attrs['IH_MOOSE'])
-        
-        self.crossshore = cfg['crossshore']
-        self.longshore = cfg['longshore']
-        
-        if self.crossshore == 'MD':
-            cfg_c = json.loads(data.attrs['run_MillerDean'])
-            self.trs = cfg_c['trs']
-            self.cross = MD_run.MillerDean_run(self.path)
-        if self.crossshore == 'YA':
-            cfg_c = json.loads(data.attrs['run_Yates09'])
-            self.trs = cfg_c['trs']
-            self.cross = YA_run.Yates09_run(self.path)
-        if self.crossshore == 'SF':
-            cfg_c = json.loads(data.attrs['run_ShoreFor'])
-            self.trs = cfg_c['trs']
-            self.cross = SF_run.ShoreFor_run(self.path)
-        if self.crossshore == 'JR':
-            cfg_c = json.loads(data.attrs['run_Jara'])
-            self.trs = cfg_c['trs']
-            self.cross = JR_run.Jara_run(self.path)
-        if self.crossshore == 'JA':
-            cfg_c = json.loads(data.attrs['run_Jaramillo20'])
-            self.trs = cfg_c['trs']
-            self.cross = JA20_run.Jaramillo20_run(self.path)
-        if self.crossshore == 'LIM':
-            cfg_c = json.loads(data.attrs['run_Lim'])
-            self.trs = cfg_c['trs']
-            self.cross = LIM_run.Lim_run(self.path)
-        
-        if self.longshore == 'TU':
-            self.long = TU_run.Turki_run(self.path)
-        if self.longshore == 'JA':
-            self.long = JA21a_run.Jaramillo21a_run(self.path)
-
-        self.cross_run = self.cross.run_model(params_cross)
-        self.long_run = self.long.run_model(params_long)
-
 def combine_arrays(x1, x2):
     x_bt = np.linspace(x1[-1], x2[-1])
     combined_length = len(x1) + len(x_bt) + len(x2)
