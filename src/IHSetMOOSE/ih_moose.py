@@ -74,7 +74,7 @@ class equilibrium_planform(object):
     
     def __init__(self, path):
         """
-        Parabolic Bay Shape Equation (Hsu and Evans, 1989)
+        Initial Setting for IH-MOOSE (Parabolic Bay Shape Equation)
         """
         self.path = path
         data = xr.open_dataset(path)
@@ -128,7 +128,7 @@ class plotting_planform(object):
     
     def __init__(self, **kwargs):
         """
-        Parabolic Bay Shape Equation (Hsu and Evans, 1989)
+        Plotting Parabolic Bay Shape Equation (Hsu and Evans, 1989)
         """
         
         self.Fmean = kwargs['Fmean']
