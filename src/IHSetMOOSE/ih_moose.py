@@ -10,7 +10,7 @@ class ih_moose(object):
     
     def __init__(self, path, planform, cross_run, long_run):  
         """
-        Jaramillo et al. 2021 model
+        IH-MOOSE (Jaramillo et al., 2021) model
         """
         self.path = path
         data = xr.open_dataset(path)
@@ -74,7 +74,7 @@ class equilibrium_planform(object):
     
     def __init__(self, path):
         """
-        Jaramillo et al. 2021 model
+        Parabolic Bay Shape Equation (Hsu and Evans, 1989)
         """
         self.path = path
         data = xr.open_dataset(path)
@@ -128,7 +128,7 @@ class plotting_planform(object):
     
     def __init__(self, **kwargs):
         """
-        Jaramillo et al. 2021 model
+        Parabolic Bay Shape Equation (Hsu and Evans, 1989)
         """
         
         self.Fmean = kwargs['Fmean']
