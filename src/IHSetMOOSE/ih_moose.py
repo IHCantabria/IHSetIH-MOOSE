@@ -10,7 +10,7 @@ class ih_moose(object):
     
     def __init__(self, path, planform, cross_run, long_run):  
         """
-        IH-MOOSE (Jaramillo et al., 2021) model
+        Run IH-MOOSE (Jaramillo et al., 2021) Model
         """
         self.path = path
         data = xr.open_dataset(path)
@@ -74,7 +74,7 @@ class equilibrium_planform(object):
     
     def __init__(self, path):
         """
-        Initial Setting for IH-MOOSE (Parabolic Bay Shape Equation)
+        Initial Setting for IH-MOOSE Model (Using Parabolic Bay Shape Equation)
         """
         self.path = path
         data = xr.open_dataset(path)
@@ -163,7 +163,7 @@ def combine_arrays(x1, x2):
         
     return combined
 
-def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX, Scale): 
+def parabolic_planform(Fmean, Cp, Cl, T, depth, Lr, gamd, dX, Scale):
     Fmean = getAwayLims(Fmean)
     Fmean_o = Fmean
     Ld = hunt(T, depth)
