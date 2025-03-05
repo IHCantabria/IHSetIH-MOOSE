@@ -1,5 +1,9 @@
 README.md
 setup.py
+IHSetMOOSE/__init__.py
+IHSetMOOSE/calibration.py
+IHSetMOOSE/ih_moose.py
+IHSetMOOSE/ih_moose_jit.py
 IHSetMOOSE.egg-info/PKG-INFO
 IHSetMOOSE.egg-info/SOURCES.txt
 IHSetMOOSE.egg-info/dependency_links.txt
