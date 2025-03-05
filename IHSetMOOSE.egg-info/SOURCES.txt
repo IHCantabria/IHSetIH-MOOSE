@@ -1,0 +1,7 @@
+README.md
+setup.py
+IHSetMOOSE.egg-info/PKG-INFO
+IHSetMOOSE.egg-info/SOURCES.txt
+IHSetMOOSE.egg-info/dependency_links.txt
+IHSetMOOSE.egg-info/requires.txt
+IHSetMOOSE.egg-info/top_level.txt

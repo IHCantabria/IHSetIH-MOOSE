@@ -1,0 +1,6 @@
+numpy
+xarray
+pandas
+numba
+matplotlib
+IHSetUtils@ git+https://github.com/IHCantabria/IHSetUtils.git
