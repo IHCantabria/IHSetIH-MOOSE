@@ -61,6 +61,65 @@ def ih_moose_jit_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha
                     
     return S_PF, costas_x, costas_y
 
+def ih_moose_par1(prof, pivotN, Fmean, Cp, Cl, T, depth, Lr, dX, delta_alpha, gamd):
+    npro = prof.shape[0]
+    pivotDir = prof[pivotN,0]
+    pivotXY = [prof[pivotN,1], prof[pivotN,2]]
+    
+    S_PFo = initialize_array((len(dX), npro), np.float64)
+    S_PF = initialize_array((len(dX), npro), np.float64)
+    costas_x = initialize_array((len(dX), npro), np.float64)
+    costas_y = initialize_array((len(dX), npro), np.float64)
+    
+    pivotS = initialize_array((len(dX), 1), np.float64)
+    X_PF = initialize_array((len(dX), 1), np.float64)
+    Y_PF = initialize_array((len(dX), 1), np.float64)
+    
+    for i in range(len(dX)):
+        # Print progress
+        if i % (len(dX) // 10) == 0:
+            print("Predicted", round(i/len(dX)*100), f"% ({i}/{len(dX)}) of Shorelines") 
+        
+        costa_x, costa_y, _ = gonzalez_ih_moose(Fmean, Cp, Cl, T, depth, Lr, gamd, dX[i])     
+        xf, yf = intersect_with_min_distance(costa_x, costa_y, prof[pivotN,:])
+        squared_distance = ((xf - prof[pivotN, 1])**2 + (yf - prof[pivotN, 2])**2)
+        S_PFo = np.sqrt(squared_distance)
+        
+        pivotS[i] = S_PFo
+        X_PF[i] = pivotXY[0] + pivotS[i] * np.cos(np.radians(pivotDir - 90))
+        Y_PF[i] = pivotXY[1] - pivotS[i] * np.sin(np.radians(pivotDir - 90))
+        centro = [X_PF[i], Y_PF[i]]
+                
+        xg = np.array(costa_x) - centro[0]
+        yg = np.array(costa_y) - centro[1]
+
+        theta0, rho = np.arctan2(yg, xg), np.sqrt(xg**2 + yg**2)
+        theta = theta0 - delta_alpha[i]
+                
+        costa_xf, costa_yf = rho * np.cos(theta), rho * np.sin(theta)
+        costa_xf += centro[0]
+        costa_yf += centro[1]
+        
+        for j in range(npro):
+            xf, yf = intersect_with_min_distance(costa_xf, costa_yf, prof[j,:])
+            squared_distance = ((xf - prof[j, 1])**2 + (yf - prof[j, 2])**2)
+            S_PF[i, j] = np.sqrt(squared_distance)
+            costas_x[i, j] = xf
+            costas_y[i, j] = yf
+            
+        Fmeand = (90 - Fmean) * np.pi/180
+        Fmeand = np.mod(Fmeand, 2 * np.pi)
+        
+        xc, yc = np.mean(costas_x[i, :]), np.mean(costas_y[i, :])
+        angles = np.arctan2(costas_y[i, :] - yc, costas_x[i, :] - xc)
+        angles = np.mod(angles - Fmeand, 2 * np.pi)
+        
+        sorted_indices = np.argsort(angles)
+        costas_x[i, :] = costas_x[i, sorted_indices]
+        costas_y[i, :] = costas_y[i, sorted_indices]
+                    
+    return S_PF, costas_x, costas_y
+
 @jit
 def ih_moose_jit_par2(prof, pivotN, Fmean, Cp1, Cp2, Cl, T, depth, Lr, dX, delta_alpha, gamd):
     npro = prof.shape[0]
@@ -131,7 +190,9 @@ def initialize_array(shape, dtype):
 
 @jit
 def intersect_with_min_distance(x1, y1, prof):
-    m = (prof[4] - prof[2]) / (prof[3] - prof[1])
+    m = (prof[4] - prof[2]) / (prof[3] - prof[1] + 1e-10)  # Avoid division by zero
+    if m == 0:
+        m = 1e-10  # Avoid zero slope
     b = prof[2] - m * prof[1]
     
     min_distance = np.inf

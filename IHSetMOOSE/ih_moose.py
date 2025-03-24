@@ -4,7 +4,7 @@ import json
 import pandas as pd
 from IHSetUtils import hunt
 from IHSetUtils.geometry import nauticalDir2cartesianDirP as n2c
-from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moose, initialize_array, intersect_with_min_distance
+from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moose, initialize_array, intersect_with_min_distance, ih_moose_par1
 
 class ih_moose(object):
     
@@ -15,7 +15,7 @@ class ih_moose(object):
         self.path = path
         data = xr.open_dataset(path)
         
-        self.trs = find_min_distance(data.x_pivotal.values, data.x_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.xf.values)         
+        self.trs = find_min_distance(data.x_pivotal.values, data.y_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.yf.values)         
         S = cross_run
         alp = long_run
         
@@ -47,15 +47,16 @@ class ih_moose(object):
         if planform.parabola_num == 1:
             print('Start Simulating IH-MOOSE...')                           
             xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
-            pivot_point = np.array([data.x_pivotal.values, data.x_pivotal.values]).reshape(2, 1)
+            pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
+
             
             self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(planform.prof, pivotN, planform.Fmean, planform.Cp, self.Cl, planform.T, planform.depth, planform.Lr, dX, delta_alpha, 0)
         
         if planform.parabola_num == 2:
             print('Start Simulating IH-MOOSE...')   
             xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
-            pivot_point = np.array([data.x_pivotal.values, data.x_pivotal.values]).reshape(2, 1)
+            pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
             
             self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par2(planform.prof, pivotN, planform.Fmean, planform.Cp1, planform.Cp2, self.Cl, planform.T, planform.depth, 0, dX, delta_alpha, 0)
