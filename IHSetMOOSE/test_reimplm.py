@@ -8,38 +8,27 @@ from .ih_moose_jit import ih_moose_jit_par1, ih_moose_jit_par2, gonzalez_ih_moos
 
 class ih_moose(object):
     
-    def __init__(self, path, model_cross, model_long):  
+    def __init__(self, path, planform, cross_run, long_run):  
         """
         Run IH-MOOSE (Jaramillo et al., 2021) Model
         """
         self.path = path
         data = xr.open_dataset(path)
-        self.cfg = json.loads(data.attrs['IH_MOOSE'])
-        data.close()
-        self.model_cross = model_cross
-        self.model_long = model_long
-
-        self.name = "IH-MOOSE"
-
-        self.setup_pars()
-        self.equilibrium_planform()
         
         self.trs = find_min_distance(data.x_pivotal.values, data.y_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.yf.values)         
-        S = model_cross.full_run
-        alp = model_long.full_run
+        S = cross_run
+        alp = long_run
         
-        if self.trs == 'Average':
-            print('Please select the specific transect')
-        else:
-            self.time = pd.to_datetime(data.time.values)
-            self.Obs = data.obs.values
-            self.time_obs = pd.to_datetime(data.time_obs.values)
-            self.ntrs_xi = data.xi.values
-            self.ntrs_yi =  data.yi.values
-            self.ntrs_xf =  data.xf.values
-            self.ntrs_yf =  data.yf.values
-            ntrs =  data.ntrs.values
-            self.ntrs = ntrs[-1] + 1
+
+        self.time = pd.to_datetime(data.time.values)
+        self.Obs = data.obs.values
+        self.time_obs = pd.to_datetime(data.time_obs.values)
+        self.ntrs_xi = data.xi.values
+        self.ntrs_yi =  data.yi.values
+        self.ntrs_xf =  data.xf.values
+        self.ntrs_yf =  data.yf.values
+        ntrs =  data.ntrs.values
+        self.ntrs = ntrs[-1] + 1
         
         mkIdx = np.vectorize(lambda t: np.argmin(np.abs(self.time - t)))
         self.idx_obs = mkIdx(self.time_obs)
@@ -47,30 +36,30 @@ class ih_moose(object):
         DirN = 90 - np.arctan((self.ntrs_yi[self.trs] - self.ntrs_yf[self.trs]) / (self.ntrs_xi[self.trs] - self.ntrs_xf[self.trs])) * 180 / np.pi
         self.Cl = [self.ntrs_xi[self.trs], self.ntrs_yi[self.trs]]
         
-        Dif = np.abs(DirN - self.planform.Fmean)
+        Dif = np.abs(DirN - planform.Fmean)
         dX = - (S * np.cos(np.radians(Dif)))
         
         delta_alpha = alp - np.mean(alp)
         delta_alpha = delta_alpha * np.pi / 180
     
-        if self.planform.parabola_num == 1:
+        if planform.parabola_num == 1:
             print('Start Simulating IH-MOOSE...')                           
-            xyi = np.vstack((self.planform.prof[:, 1], self.planform.prof[:, 2]))
+            xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
 
             
-            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(self.planform.prof, pivotN, self.planform.Fmean, self.planform.Cp, self.Cl, self.planform.T, self.planform.depth, self.planform.Lr, dX, delta_alpha, 0)
+            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(planform.prof, pivotN, planform.Fmean, planform.Cp, self.Cl, planform.T, planform.depth, planform.Lr, dX, delta_alpha, 0)
         
-        if self.planform.parabola_num == 2:
+        if planform.parabola_num == 2:
             print('Start Simulating IH-MOOSE...')   
-            xyi = np.vstack((self.planform.prof[:, 1], self.planform.prof[:, 2]))
+            xyi = np.vstack((planform.prof[:, 1], planform.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
             
-            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par2(self.planform.prof, pivotN, self.planform.Fmean, self.planform.Cp1, self.planform.Cp2, self.Cl, self.planform.T, self.planform.depth, 0, dX, delta_alpha, 0)
+            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par2(planform.prof, pivotN, planform.Fmean, planform.Cp1, planform.Cp2, self.Cl, planform.T, planform.depth, 0, dX, delta_alpha, 0)
                 
-        self.full_run = initialize_array((len(dX), self.ntrs), np.float64)
+        self.SS = initialize_array((len(dX), self.ntrs), np.float64)
         
         for j in range(self.ntrs):
             print('Calculating Transect', j+1, 'Shoreline Position...')   
@@ -78,48 +67,35 @@ class ih_moose(object):
             for i in range(len(dX)):
                 xf, yf = intersect_with_min_distance(self.costas_x[i,:], self.costas_y[i,:], prof)
                 squared_distance = ((xf - self.ntrs_xi[j])**2 + (yf - self.ntrs_yi[j])**2)
-                self.full_run[i, j] = np.sqrt(squared_distance)
-
-    def setup_pars(self):
-        """
-        Used parameters in cross_shore and rotation runs
-        """
-        self.par_names = []
-        self.par_values = []
-
-        for name, value in zip(self.model_cross.par_names, self.model_cross.par_values):
-            new_name = self.model_cross.name + '_' + name
-            self.par_names.append(name)
-            self.par_values.append(value)
-
-        for name, value in zip(self.model_long.par_names, self.model_long.par_values):
-            new_name = self.model_long.name + '_' + name
-            self.par_names.append(new_name)
-            self.par_values.append(value)
+                self.SS[i, j] = np.sqrt(squared_distance)
             
-    def equilibrium_planform(self):
-        
+class equilibrium_planform(object):
+    
+    def __init__(self, path):
         """
         Initial Setting for IH-MOOSE Model (Using Parabolic Bay Shape Equation)
         """
-                
-        self.Fmean = self.cfg['Fmean']
-        self.T = self.cfg['T']
-        self.depth = self.cfg['hd']
-        self.parabola_num = self.cfg['parabola_num']
-        self.lpro = self.cfg['lpro']
-        self.Cl = self.cfg['Cl']
+        self.path = path
+        data = xr.open_dataset(path)
+        cfg = json.loads(data.attrs['IH_MOOSE'])
+        
+        self.Fmean = cfg['Fmean']
+        self.T = cfg['T']
+        self.depth = cfg['hd']
+        self.parabola_num = cfg['parabola_num']
+        self.lpro = cfg['lpro']
+        self.Cl = cfg['Cl']
         
         if self.parabola_num == 1:
-            self.Cp = self.cfg['Cp']
-            self.Lr = self.cfg['Lr']
+            self.Cp = cfg['Cp']
+            self.Lr = cfg['Lr']
             self.costa_xe, self.costa_ye, self.alpha_curve = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, 0)
             self.costa_xi, self.costa_yi, _ = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, self.lpro/2)
             self.costa_xf, self.costa_yf, _ = gonzalez_ih_moose(self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, 0, -self.lpro/2)
             
         if self.parabola_num == 2:
-            self.Cp1 = self.cfg['Cp1']
-            self.Cp2 = self.cfg['Cp2']
+            self.Cp1 = cfg['Cp1']
+            self.Cp2 = cfg['Cp2']
             costa_xe1, costa_ye1, self.alpha_curve1 = gonzalez_ih_moose(self.Fmean, self.Cp1, self.Cl, self.T, self.depth, 0, 0, 0)
             costa_xe2, costa_ye2, self.alpha_curve2 = gonzalez_ih_moose(self.Fmean, self.Cp2, self.Cl, self.T, self.depth, 0, 0, 0)
             self.costa_xe = combine_arrays(costa_xe1, costa_xe2)
