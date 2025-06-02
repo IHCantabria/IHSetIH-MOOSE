@@ -47,28 +47,28 @@ class ih_moose(object):
         DirN = 90 - np.arctan((self.ntrs_yi[self.trs] - self.ntrs_yf[self.trs]) / (self.ntrs_xi[self.trs] - self.ntrs_xf[self.trs])) * 180 / np.pi
         self.Cl = [self.ntrs_xi[self.trs], self.ntrs_yi[self.trs]]
         
-        Dif = np.abs(DirN - self.planform.Fmean)
+        Dif = np.abs(DirN - self.Fmean)
         dX = - (S * np.cos(np.radians(Dif)))
         
         delta_alpha = alp - np.mean(alp)
         delta_alpha = delta_alpha * np.pi / 180
     
-        if self.planform.parabola_num == 1:
+        if self.parabola_num == 1:
             print('Start Simulating IH-MOOSE...')                           
-            xyi = np.vstack((self.planform.prof[:, 1], self.planform.prof[:, 2]))
+            xyi = np.vstack((self.prof[:, 1], self.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
 
             
-            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(self.planform.prof, pivotN, self.planform.Fmean, self.planform.Cp, self.Cl, self.planform.T, self.planform.depth, self.planform.Lr, dX, delta_alpha, 0)
+            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par1(self.prof, pivotN, self.Fmean, self.Cp, self.Cl, self.T, self.depth, self.Lr, dX, delta_alpha, 0)
         
-        if self.planform.parabola_num == 2:
+        if self.parabola_num == 2:
             print('Start Simulating IH-MOOSE...')   
-            xyi = np.vstack((self.planform.prof[:, 1], self.planform.prof[:, 2]))
+            xyi = np.vstack((self.prof[:, 1], self.prof[:, 2]))
             pivot_point = np.array([data.x_pivotal.values, data.y_pivotal.values]).reshape(2, 1)
             pivotN = np.argmin(np.linalg.norm(xyi.T - pivot_point.T, axis=1))
             
-            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par2(self.planform.prof, pivotN, self.planform.Fmean, self.planform.Cp1, self.planform.Cp2, self.Cl, self.planform.T, self.planform.depth, 0, dX, delta_alpha, 0)
+            self.S_PF, self.costas_x, self.costas_y = ih_moose_jit_par2(self.prof, pivotN, self.Fmean, self.Cp1, self.Cp2, self.Cl, self.T, self.depth, 0, dX, delta_alpha, 0)
                 
         self.full_run = initialize_array((len(dX), self.ntrs), np.float64)
         
