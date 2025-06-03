@@ -21,6 +21,7 @@ class ih_moose(object):
         self.model_long = model_long
 
         self.name = "IH-MOOSE"
+        self.type = "HY"
 
         self.setup_pars()
         self.equilibrium_planform()
