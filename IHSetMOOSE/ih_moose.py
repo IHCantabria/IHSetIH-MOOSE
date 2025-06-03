@@ -15,6 +15,7 @@ class ih_moose(object):
         self.path = path
         data = xr.open_dataset(path)
         self.cfg = json.loads(data.attrs['IH_MOOSE'])
+        self.X0, self.Y0, self.phi = data.xi.values, data.yi.values, data.phi.values
         data.close()
         self.model_cross = model_cross
         self.model_long = model_long
