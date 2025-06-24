@@ -29,11 +29,12 @@ class ih_moose(object):
         self.trs = find_min_distance(data.x_pivotal.values, data.y_pivotal.values, data.xi.values, data.yi.values, data.xf.values, data.yf.values)         
         S = model_cross.full_run
         alp = model_long.full_run
+        self.time = model_cross.time
         
         if self.trs == 'Average':
             print('Please select the specific transect')
         else:
-            self.time = pd.to_datetime(data.time.values)
+            # self.time = pd.to_datetime(data.time.values)
             self.Obs = data.obs.values
             self.time_obs = pd.to_datetime(data.time_obs.values)
             self.ntrs_xi = data.xi.values
